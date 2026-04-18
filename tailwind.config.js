@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -53,12 +54,14 @@ export default {
         "on-error": "#690005",
         "surface-dim": "#131313",
         "primary-container": "#d4d4d4",
-        "error-container": "#93000a"
+        "error-container": "#93000a",
+        "accent-purple": "#A855F7"
       },
       borderRadius: {
         "DEFAULT": "1rem",
         "lg": "2rem",
         "xl": "3rem",
+        "full": "9999px",
       },
       fontFamily: {
         "headline": ["Inter", "sans-serif"],
