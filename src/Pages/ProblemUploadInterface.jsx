@@ -239,46 +239,6 @@ nums2.length == n
         )}
 
         <div className="flex flex-col">
-          <header className="flex justify-between items-center px-12 h-16 w-full bg-[#131313]/80 backdrop-blur-xl z-40 border-b border-white/5">
-            <div className="flex items-center gap-8">
-              <span className="text-lg font-black text-white uppercase tracking-tighter">
-                Editor
-              </span>
-              <div className="flex gap-6 items-center">
-                <a
-                  className="text-zinc-500 font-medium font-['Inter'] text-sm uppercase tracking-widest hover:text-white transition-opacity duration-200"
-                  href="#"
-                >
-                  Drafts
-                </a>
-                <a
-                  className="text-white font-bold border-b-2 border-white pb-1 font-['Inter'] text-sm uppercase tracking-widest"
-                  href="#"
-                >
-                  New Problem
-                </a>
-                <a
-                  className="text-zinc-500 font-medium font-['Inter'] text-sm uppercase tracking-widest hover:text-white transition-opacity duration-200"
-                  href="#"
-                >
-                  Templates
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="px-6 py-2 rounded-full font-bold text-sm bg-surface-container-highest text-white hover:bg-surface-bright transition-all">
-                Save Draft
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="px-8 py-2 rounded-full font-bold text-sm bg-white text-zinc-950 shadow-lg shadow-white/5 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-              >
-                Publish
-              </button>
-            </div>
-          </header>
-
           <section className="flex h-[calc(100vh-144px)] overflow-hidden">
             {/* LEFT FORM PANEL */}
             <div className="w-[40%] h-full overflow-y-auto custom-scrollbar bg-surface-container-low px-12 py-10">
@@ -440,7 +400,11 @@ nums2.length == n
                           rows={2}
                           value={tc.expectedOutput}
                           onChange={(e) =>
-                            updateTestCase(idx, "expectedOutput", e.target.value)
+                            updateTestCase(
+                              idx,
+                              "expectedOutput",
+                              e.target.value,
+                            )
                           }
                           className="w-full bg-zinc-900 border border-white/10 rounded-xl p-3 font-mono text-xs text-white resize-none focus:ring-1 ring-white/20"
                           placeholder="Expected output"
@@ -466,8 +430,8 @@ nums2.length == n
                         onClick={addTestCase}
                         className="flex-1 py-4 rounded-3xl border-2 border-dashed border-white/5 text-zinc-500 font-bold text-sm hover:border-white/20 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
-                        <span className="material-symbols-outlined">add</span> Add
-                        Test Case
+                        <span className="material-symbols-outlined">add</span>{" "}
+                        Add Test Case
                       </button>
                       <label className="flex-1 py-4 rounded-3xl border-2 border-dashed border-white/5 text-zinc-500 font-bold text-sm hover:border-white/20 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer">
                         <span className="material-symbols-outlined">
@@ -550,7 +514,9 @@ nums2.length == n
                   disabled={submitting}
                   className="w-full py-5 rounded-3xl bg-white text-black font-black text-lg shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                 >
-                  {submitting ? "Publishing..." : "Submit Problem to Production"}
+                  {submitting
+                    ? "Publishing..."
+                    : "Submit Problem to Production"}
                 </button>
                 {message && (
                   <div
