@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import ProblemUploadInterface from "./Pages/ProblemUploadInterface";
 import LandingPage from "./Pages/LandingPage";
+import AdminDashboard from "./Pages/AdminDashboard";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route
           path="/admin/problems/new"
           element={<ProblemUploadInterface />}
