@@ -9,8 +9,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route
           path="/admin/problems/new"
