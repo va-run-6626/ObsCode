@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import Papa from "papaparse";
 import ReactMarkdown from "react-markdown";
@@ -37,49 +38,113 @@ const TAG_OPTIONS = [
   "DESIGN",
 ];
 
-const ProblemUploadInterface = () => {
-  // ----------------------------- State -----------------------------
+const ProblemUploadInterface = ({ mode = "create" }) => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
-    title: "Median of Two Sorted Arrays",
-    slug: "median-two-sorted-arrays",
+    title: "",
+    slug: "",
     difficulty: "Hard",
-    tags: ["ARRAY", "BINARY_SEARCH"],
-    description: `Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.
-
-The overall run time complexity should be O(log (m+n)).
-
-**Example 1:**
-Input: nums1 = [1,3], nums2 = [2]
-Output: 2.00000`,
-    constraints: `nums1.length == m
-nums2.length == n
-0 <= m, n <= 1000
-1 <= m + n <= 2000
--10^6 <= nums1[i], nums2[i] <= 10^6`,
-    testCases: [
-      {
-        input: "nums1 = [1,3], nums2 = [2]",
-        expectedOutput: "2.00000",
-        isPublic: true,
-      },
-    ],
+    tags: [],
+    description: "",
+    constraints: "",
+    testCases: [],
     starterCode: {
-      "C++": `class Solution {\npublic:\n    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {\n        \n    }\n};`,
-      Java: `class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        \n    }\n}`,
-      JavaScript: `/**\n * @param {number[]} nums1\n * @param {number[]} nums2\n * @return {number}\n */\nvar findMedianSortedArrays = function(nums1, nums2) {\n    \n};`,
-      Python: `class Solution:\n    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:\n        `,
+      "C++": "",
+      Java: "",
+      JavaScript: "",
+      Python: "",
     },
     solution: "",
     timeLimitMs: 1000,
     memoryLimitMb: 256,
+    live: false, // <-- NEW: live flag
   });
 
+  const [problemId, setProblemId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [activeLang, setActiveLang] = useState("C++");
   const [previewLang, setPreviewLang] = useState("C++");
   const [toastVisible, setToastVisible] = useState(false);
 
+  // Fetch existing problem data when in edit mode
+  useEffect(() => {
+    if (mode === "edit" && slug) {
+      const fetchProblem = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/problems/${slug}`);
+          if (!response.ok)
+            throw new Error(`Failed to fetch: ${response.status}`);
+          const data = await response.json();
+
+          setProblemId(data.id);
+
+          // Transform test cases: backend 'public' -> frontend 'isPublic'
+          const transformedTestCases = (data.allTestCases || []).map((tc) => ({
+            input: tc.input,
+            expectedOutput: tc.expectedOutput,
+            isPublic: tc.visible,
+          }));
+
+          // Transform starterCode: lowercase keys -> capitalized keys
+          const transformedStarterCode = {
+            "C++": data.starterCode?.cpp || "",
+            Java: data.starterCode?.java || "",
+            JavaScript: data.starterCode?.javascript || "",
+            Python: data.starterCode?.python || "",
+          };
+
+          setForm({
+            title: data.title || "",
+            slug: data.slug || "",
+            difficulty: data.difficulty || "Hard",
+            tags: data.tags || [],
+            description: data.description || "",
+            constraints: data.constraints || "",
+            testCases: transformedTestCases,
+            starterCode: transformedStarterCode,
+            solution: data.solution || "",
+            timeLimitMs: data.timeLimitMs || 1000,
+            memoryLimitMb: data.memoryLimitMb || 256,
+            live: data.live ?? false, // <-- NEW: populate live flag
+          });
+        } catch (err) {
+          setMessage({ type: "error", text: err.message });
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchProblem();
+    } else {
+      // reset form for create mode
+      setProblemId(null);
+      setForm({
+        title: "",
+        slug: "",
+        difficulty: "Hard",
+        tags: [],
+        description: "",
+        constraints: "",
+        testCases: [],
+        starterCode: {
+          "C++": "",
+          Java: "",
+          JavaScript: "",
+          Python: "",
+        },
+        solution: "",
+        timeLimitMs: 1000,
+        memoryLimitMb: 256,
+        live: false,
+      });
+    }
+  }, [mode, slug]);
+
+  // Auto-save toast
   useEffect(() => {
     if (!toastVisible) return;
     const timer = setTimeout(() => setToastVisible(false), 2000);
@@ -187,6 +252,7 @@ nums2.length == n
     e.preventDefault();
     setSubmitting(true);
     setMessage(null);
+
     if (!form.title || !form.slug || !form.description) {
       setMessage({
         type: "error",
@@ -195,15 +261,62 @@ nums2.length == n
       setSubmitting(false);
       return;
     }
+
+    const bodyToSend = {
+      title: form.title,
+      slug: form.slug,
+      difficulty: form.difficulty,
+      tags: form.tags,
+      description: form.description,
+      constraints: form.constraints,
+      testCases: form.testCases.map((tc) => ({
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+        visible: tc.isPublic, // ✅ fixed
+      })),
+      starterCode: {},
+      solution: form.solution,
+      timeLimitMs: form.timeLimitMs,
+      memoryLimitMb: form.memoryLimitMb,
+      live: form.live, // ✅ fixed
+    };
+
+    // Map starterCode keys to lowercase
+    Object.entries(form.starterCode).forEach(([lang, code]) => {
+      if (lang === "C++") bodyToSend.starterCode["cpp"] = code;
+      else if (lang === "Java") bodyToSend.starterCode["java"] = code;
+      else if (lang === "JavaScript")
+        bodyToSend.starterCode["javascript"] = code;
+      else if (lang === "Python") bodyToSend.starterCode["python"] = code;
+    });
+
     try {
-      const response = await fetch(`${API_BASE_URL}/api/problems`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      let response;
+      if (mode === "edit" && problemId) {
+        response = await fetch(`${API_BASE_URL}/api/problems/${problemId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyToSend),
+        });
+      } else {
+        response = await fetch(`${API_BASE_URL}/api/problems`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyToSend),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to ${mode} problem`);
+      }
+
+      setMessage({
+        type: "success",
+        text: `Problem ${mode === "edit" ? "updated" : "created"} successfully!`,
       });
-      if (!response.ok) throw new Error("Failed to create problem");
-      setMessage({ type: "success", text: "Problem published successfully!" });
       setTimeout(() => setMessage(null), 3000);
+      setTimeout(() => navigate("/admin/dashboard"), 2000);
     } catch (err) {
       setMessage({ type: "error", text: err.message });
     } finally {
@@ -220,6 +333,19 @@ nums2.length == n
     document.head.appendChild(style);
     return () => style.remove();
   }, []);
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white">Loading problem data...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -271,7 +397,12 @@ nums2.length == n
                           name="slug"
                           value={form.slug}
                           onChange={handleChange}
-                          className="w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 text-zinc-300 font-mono text-xs focus:ring-2 ring-white/20 transition-all"
+                          disabled={mode === "edit"}
+                          className={`w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 font-mono text-xs focus:ring-2 ring-white/20 transition-all ${
+                            mode === "edit"
+                              ? "text-zinc-500 cursor-not-allowed"
+                              : "text-zinc-300"
+                          }`}
                         />
                       </div>
                       <div>
@@ -340,7 +471,7 @@ nums2.length == n
                       value={form.description}
                       onChange={handleChange}
                       rows={8}
-                      className="w-full bg-transparent border-none p-6 text-on-background font-mono text-sm focus:ring-0 resize-none leading-relaxed"
+                      className="w-full bg-transparent border-none p-6 text-on-background font-mono text-sm focus:ring-0 hide-scrollbar resize-none leading-relaxed"
                       placeholder="Write problem description in Markdown..."
                     />
                   </div>
@@ -353,7 +484,7 @@ nums2.length == n
                       value={form.constraints}
                       onChange={handleChange}
                       rows={4}
-                      className="w-full bg-surface-container-lowest border-none rounded-2xl py-4 px-6 text-zinc-300 font-mono text-xs focus:ring-2 ring-white/20 transition-all"
+                      className="w-full bg-surface-container-lowest hide-scrollbar border-none rounded-2xl py-4 px-6 text-zinc-300 font-mono text-xs focus:ring-2 ring-white/20 transition-all"
                     />
                   </div>
                 </div>
@@ -412,7 +543,7 @@ nums2.length == n
                         <label className="flex items-center gap-2">
                           <input
                             type="checkbox"
-                            checked={tc.isPublic}
+                            checked={tc.isPublic === true}
                             onChange={(e) =>
                               updateTestCase(idx, "isPublic", e.target.checked)
                             }
@@ -460,7 +591,11 @@ nums2.length == n
                           key={lang}
                           type="button"
                           onClick={() => setActiveLang(lang)}
-                          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeLang === lang ? "bg-white text-black shadow-xl" : "text-zinc-400 hover:text-white"}`}
+                          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${
+                            activeLang === lang
+                              ? "bg-white text-black shadow-xl"
+                              : "text-zinc-400 hover:text-white"
+                          }`}
                         >
                           {lang}
                         </button>
@@ -509,18 +644,48 @@ nums2.length == n
                   </div>
                 </div>
 
+                {/* NEW: Live Checkbox */}
+                <div className="flex items-center gap-3 my-6">
+                  <input
+                    type="checkbox"
+                    id="liveCheckbox"
+                    checked={form.live}
+                    onChange={(e) => {
+                      setForm((prev) => ({ ...prev, live: e.target.checked }));
+                      triggerAutoSave();
+                    }}
+                    className="w-5 h-5 rounded bg-zinc-800 border-white/20 text-white focus:ring-0"
+                  />
+                  <label
+                    htmlFor="liveCheckbox"
+                    className="text-sm font-medium text-white"
+                  >
+                    Publish problem as{" "}
+                    <span className="text-green-400">Live</span>
+                  </label>
+                  <span className="text-xs text-zinc-500">
+                    (Visible to all users)
+                  </span>
+                </div>
+
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || loading}
                   className="w-full py-5 rounded-3xl bg-white text-black font-black text-lg shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                 >
                   {submitting
-                    ? "Publishing..."
-                    : "Submit Problem to Production"}
+                    ? "Saving..."
+                    : mode === "edit"
+                      ? "Update Problem"
+                      : "Submit Problem to Production"}
                 </button>
                 {message && (
                   <div
-                    className={`p-3 rounded-md text-sm ${message.type === "error" ? "bg-red-900/50 text-red-200" : "bg-green-900/50 text-green-200"}`}
+                    className={`p-3 rounded-md text-sm ${
+                      message.type === "error"
+                        ? "bg-red-900/50 text-red-200"
+                        : "bg-green-900/50 text-green-200"
+                    }`}
                   >
                     {message.text}
                   </div>
@@ -528,7 +693,7 @@ nums2.length == n
               </form>
             </div>
 
-            {/* RIGHT LIVE PREVIEW PANEL */}
+            {/* RIGHT LIVE PREVIEW PANEL - unchanged */}
             <div className="w-[60%] h-full bg-background relative border-l border-white/5 p-8 flex flex-col gap-6">
               <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 pointer-events-none">
                 <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/60">
@@ -557,13 +722,19 @@ nums2.length == n
                 </div>
                 <div className="flex-1 flex overflow-hidden">
                   {/* Problem description side */}
-                  <div className="w-[45%] h-full p-8 space-y-6 overflow-y-auto bg-surface-container-low border-r border-white/5">
+                  <div className="w-[45%] h-full p-8 hide-scrollbar space-y-6 overflow-y-auto bg-surface-container-low border-r border-white/5">
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className="text-2xl font-bold text-white tracking-tight">
-                        {form.title}
+                        {form.title || "Preview Title"}
                       </h3>
                       <span
-                        className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${form.difficulty === "Easy" ? "bg-green-500/10 text-green-500 border-green-500/20" : form.difficulty === "Medium" ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                          form.difficulty === "Easy"
+                            ? "bg-green-500/10 text-green-500 border-green-500/20"
+                            : form.difficulty === "Medium"
+                              ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+                              : "bg-red-500/10 text-red-500 border-red-500/20"
+                        }`}
                       >
                         {form.difficulty}
                       </span>
@@ -616,7 +787,8 @@ nums2.length == n
                           ),
                         }}
                       >
-                        {form.description}
+                        {form.description ||
+                          "*Problem description will appear here.*"}
                       </ReactMarkdown>
                     </div>
 
@@ -646,7 +818,7 @@ nums2.length == n
                       </div>
                     )}
 
-                    {/* Constraints as bullet list – each line on its own row */}
+                    {/* Constraints as bullet list */}
                     {form.constraints && (
                       <div className="space-y-2 pt-4">
                         <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">
@@ -688,7 +860,7 @@ nums2.length == n
                     )}
                   </div>
 
-                  {/* Preview Editor Side – clickable dropdown */}
+                  {/* Preview Editor Side */}
                   <div className="flex-1 flex flex-col bg-zinc-950">
                     <div className="h-12 flex items-center px-4 justify-between bg-zinc-900/50 border-b border-white/5">
                       <div className="pointer-events-auto">

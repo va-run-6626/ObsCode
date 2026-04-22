@@ -12,10 +12,13 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route
-          path="/admin/problems/new"
-          element={<ProblemUploadInterface />}
+          path="/admin/problems/edit/:slug"
+          element={<ProblemUploadInterface mode="edit" />}
         />
-        {/* You can add more routes here */}
+        <Route
+          path="/admin/problems/new"
+          element={<ProblemUploadInterface mode="create" />}
+        />
       </Routes>
     </BrowserRouter>
   );
