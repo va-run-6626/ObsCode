@@ -9,36 +9,26 @@ const SignupPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
     setLoading(true);
 
     try {
       const response = await api.post("/auth/register", { email, password });
-      const {
-        token,
-        role,
-        name: userName,
-        avatarUrl,
-        email: userEmail,
-      } = response.data;
+      const { message, email: userEmail, name: userName } = response.data;
 
-      // Store authentication data
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("email", userEmail);
-      localStorage.setItem("name", userName);
-      if (avatarUrl) localStorage.setItem("avatar", avatarUrl);
-
-      // Redirect based on role (new users are always USER initially)
-      if (role === "ADMIN") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+      // Only show success message – do NOT store token or redirect
+      setSuccessMsg(
+        message ||
+          "Registration successful! Please check your email to verify your account.",
+      );
+      // Optionally clear form or keep it – user cannot proceed until verified
+      // We don't store any token because verification is required.
     } catch (err) {
       const message =
         err.response?.data?.message || "Registration failed. Please try again.";
@@ -164,6 +154,11 @@ const SignupPage = () => {
               </div>
               {error && (
                 <div className="text-red-400 text-xs text-center">{error}</div>
+              )}
+              {successMsg && (
+                <div className="text-green-400 text-xs text-center bg-green-900/20 p-2 rounded">
+                  {successMsg}
+                </div>
               )}
               <div className="pt-4">
                 <button

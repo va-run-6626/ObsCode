@@ -7,6 +7,7 @@ import AdminDashboard from "./Pages/AdminDashboard";
 import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
 import OAuthCallback from "./Pages/OAuthCallback";
+import VerifyEmail from "./Pages/VerifyEmail";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           element={<ProblemUploadInterface mode="create" />}
         />
         <Route path="/oauth-callback" element={<OAuthCallback />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
       </Routes>
     </BrowserRouter>
   );
