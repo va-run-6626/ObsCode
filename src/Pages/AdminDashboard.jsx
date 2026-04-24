@@ -102,7 +102,7 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto py-10">
         {/* Page Header with Add Problem button */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div>
@@ -128,9 +128,6 @@ const AdminDashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="bg-surface-container-highest text-white p-4 rounded-2xl hover:bg-surface-bright transition-all">
-              <span className="material-symbols-outlined">tune</span>
-            </button>
             {/* Add New Problem button */}
             <button
               onClick={() => navigate("/admin/problems/new")}

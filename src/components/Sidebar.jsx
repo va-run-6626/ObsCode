@@ -7,7 +7,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
 
   const navItems = [
     { name: "Dashboard", icon: "dashboard", path: "/admin/dashboard" },
-    { name: "Problems", icon: "code_blocks", path: "/admin/problems" },
+    { name: "Play", icon: "play_circle", path: "/admin/play" },
     { name: "Users", icon: "group", path: "/admin/users" },
     { name: "Settings", icon: "tune", path: "/admin/settings" },
   ];
