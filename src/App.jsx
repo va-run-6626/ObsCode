@@ -6,6 +6,7 @@ import LandingPage from "./Pages/LandingPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
+import OAuthCallback from "./Pages/OAuthCallback";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           path="/admin/problems/new"
           element={<ProblemUploadInterface mode="create" />}
         />
+        <Route path="/oauth-callback" element={<OAuthCallback />} />
       </Routes>
     </BrowserRouter>
   );

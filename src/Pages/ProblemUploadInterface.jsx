@@ -4,9 +4,8 @@ import Editor from "@monaco-editor/react";
 import Papa from "papaparse";
 import ReactMarkdown from "react-markdown";
 import AdminLayout from "../components/AdminLayout";
+import api from "../services/api"; // ← axios instance
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 const LANGUAGES = ["C++", "Java", "JavaScript", "Python"];
 const LANGUAGE_MAP = {
   "C++": "cpp",
@@ -59,7 +58,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
     solution: "",
     timeLimitMs: 1000,
     memoryLimitMb: 256,
-    live: false, // <-- NEW: live flag
+    live: false,
   });
 
   const [problemId, setProblemId] = useState(null);
@@ -76,10 +75,8 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
       const fetchProblem = async () => {
         setLoading(true);
         try {
-          const response = await fetch(`${API_BASE_URL}/api/problems/${slug}`);
-          if (!response.ok)
-            throw new Error(`Failed to fetch: ${response.status}`);
-          const data = await response.json();
+          const response = await api.get(`/problems/${slug}`);
+          const data = response.data;
 
           setProblemId(data.id);
 
@@ -110,10 +107,13 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
             solution: data.solution || "",
             timeLimitMs: data.timeLimitMs || 1000,
             memoryLimitMb: data.memoryLimitMb || 256,
-            live: data.live ?? false, // <-- NEW: populate live flag
+            live: data.live ?? false,
           });
         } catch (err) {
-          setMessage({ type: "error", text: err.message });
+          setMessage({
+            type: "error",
+            text: err.response?.data?.message || err.message,
+          });
         } finally {
           setLoading(false);
         }
@@ -272,13 +272,13 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
       testCases: form.testCases.map((tc) => ({
         input: tc.input,
         expectedOutput: tc.expectedOutput,
-        visible: tc.isPublic, // ✅ fixed
+        visible: tc.isPublic,
       })),
       starterCode: {},
       solution: form.solution,
       timeLimitMs: form.timeLimitMs,
       memoryLimitMb: form.memoryLimitMb,
-      live: form.live, // ✅ fixed
+      live: form.live,
     };
 
     // Map starterCode keys to lowercase
@@ -291,24 +291,10 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
     });
 
     try {
-      let response;
       if (mode === "edit" && problemId) {
-        response = await fetch(`${API_BASE_URL}/api/problems/${problemId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bodyToSend),
-        });
+        await api.put(`/problems/${problemId}`, bodyToSend);
       } else {
-        response = await fetch(`${API_BASE_URL}/api/problems`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bodyToSend),
-        });
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to ${mode} problem`);
+        await api.post("/problems", bodyToSend);
       }
 
       setMessage({
@@ -318,7 +304,10 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
       setTimeout(() => setMessage(null), 3000);
       setTimeout(() => navigate("/admin/dashboard"), 2000);
     } catch (err) {
-      setMessage({ type: "error", text: err.message });
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || err.message,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -350,6 +339,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
   return (
     <AdminLayout>
       <div className="text-on-background font-body relative">
+        {/* Toast notification – same JSX */}
         {toastVisible && (
           <div className="fixed top-24 right-8 z-[100] flex items-center gap-4 bg-surface-container-highest p-4 pr-8 rounded-3xl shadow-2xl border border-white/5 animate-in fade-in slide-in-from-top-4">
             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-zinc-950">
@@ -366,12 +356,14 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
 
         <div className="flex flex-col">
           <section className="flex h-[calc(100vh-144px)] overflow-hidden">
-            {/* LEFT FORM PANEL */}
+            {/* LEFT FORM PANEL – unchanged JSX */}
+            {/* ... the entire form UI remains exactly as you had ... */}
             <div className="w-[40%] h-full overflow-y-auto custom-scrollbar bg-surface-container-low px-12 py-10">
               <form
                 onSubmit={handleSubmit}
                 className="max-w-xl mx-auto space-y-12"
               >
+                {/* Core Details */}
                 <div className="space-y-6">
                   <h2 className="text-2xl font-extrabold text-white tracking-tight">
                     Core Details
@@ -461,6 +453,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
+                {/* Content */}
                 <div className="space-y-4">
                   <h2 className="text-2xl font-extrabold text-white tracking-tight">
                     Content
@@ -489,6 +482,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
+                {/* Test Cases */}
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-extrabold text-white tracking-tight">
@@ -580,6 +574,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
+                {/* Starter Code */}
                 <div className="space-y-4">
                   <h2 className="text-2xl font-extrabold text-white tracking-tight">
                     Starter Code
@@ -644,7 +639,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
-                {/* NEW: Live Checkbox */}
+                {/* Live Checkbox */}
                 <div className="flex items-center gap-3 my-6">
                   <input
                     type="checkbox"
@@ -693,7 +688,8 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
               </form>
             </div>
 
-            {/* RIGHT LIVE PREVIEW PANEL - unchanged */}
+            {/* RIGHT LIVE PREVIEW PANEL – unchanged JSX */}
+            {/* (keeping exactly as you had – no API calls there) */}
             <div className="w-[60%] h-full bg-background relative border-l border-white/5 p-8 flex flex-col gap-6">
               <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 pointer-events-none">
                 <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/60">

@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
 
 const LandingPage = () => {
   return (
@@ -6,16 +7,46 @@ const LandingPage = () => {
       {/* TopNavBar */}
       <nav className="fixed top-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/5 shadow-[0px_20px_40px_rgba(0,0,0,0.4)]">
         <div className="flex justify-between items-center px-6 md:px-12 py-4 w-full max-w-screen-2xl mx-auto">
-          <div className="text-2xl font-bold tracking-tighter text-white font-headline">ObsCode</div>
+          <div className="text-2xl font-bold tracking-tighter text-white font-headline">
+            ObsCode
+          </div>
           <div className="hidden md:flex items-center space-x-8">
-            <a className="font-headline tracking-tight text-sm font-medium text-white border-b-2 border-white pb-1" href="#">Editor</a>
-            <a className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors" href="#">Library</a>
-            <a className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors" href="#">Community</a>
-            <a className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors" href="#">Documentation</a>
+            <a
+              className="font-headline tracking-tight text-sm font-medium text-white border-b-2 border-white pb-1"
+              href="#"
+            >
+              Editor
+            </a>
+            <a
+              className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors"
+              href="#"
+            >
+              Library
+            </a>
+            <a
+              className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors"
+              href="#"
+            >
+              Community
+            </a>
+            <a
+              className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors"
+              href="#"
+            >
+              Documentation
+            </a>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="hidden lg:block text-[#C7C6C6] text-sm font-medium hover:text-white transition-colors">Sign In</button>
-            <button className="bg-white text-[#1A1C1C] px-6 py-2 rounded-full text-sm font-bold hover:bg-primary-container transition-all active:scale-95">Get Started</button>
+            <Link to="/login">
+              <button className="hidden lg:block text-[#C7C6C6] text-sm font-medium hover:text-white transition-colors">
+                Sign In
+              </button>
+            </Link>
+            <Link to="/signup">
+              <button className="bg-white text-[#1A1C1C] px-6 py-2 rounded-full text-sm font-bold hover:bg-primary-container transition-all active:scale-95">
+                Get Started
+              </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -42,18 +73,38 @@ const LandingPage = () => {
                 <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
-                <span className="ml-4 font-mono text-xs text-secondary opacity-50 uppercase tracking-widest">kernel_optimization.rs</span>
+                <span className="ml-4 font-mono text-xs text-secondary opacity-50 uppercase tracking-widest">
+                  kernel_optimization.rs
+                </span>
               </div>
               <pre className="font-mono text-sm md:text-base leading-relaxed">
-                <span className="text-accent-purple">pub fn</span> <span className="text-white">optimize_stream</span>&lt;T&gt;(input: <span className="text-accent-purple">Stream</span>&lt;T&gt;) -&gt; <span className="text-accent-purple">Result</span>&lt;()&gt; {'{'}{'\n'}
-                {'    '}<span className="text-secondary opacity-60">// Parallel processing pipeline with zero-copy</span>{'\n'}
-                {'    '}<span className="text-white">input</span>.<span className="text-white">par_iter()</span>{'\n'}
-                {'        '}.<span className="text-white">filter</span>(|node| node.<span className="text-accent-purple">is_valid</span>()){'\n'}
-                {'        '}.<span className="text-white">map</span>(|node| node.<span className="text-white">process_atomic</span>()){'\n'}
-                {'        '}.<span className="text-white">collect()</span>;{'\n'}
-                {'\n'}
-                {'    '}<span className="text-accent-purple">Ok</span>(()){'\n'}
-                {'}'}
+                <span className="text-accent-purple">pub fn</span>{" "}
+                <span className="text-white">optimize_stream</span>
+                &lt;T&gt;(input:{" "}
+                <span className="text-accent-purple">Stream</span>&lt;T&gt;)
+                -&gt; <span className="text-accent-purple">Result</span>
+                &lt;()&gt; {"{"}
+                {"\n"}
+                {"    "}
+                <span className="text-secondary opacity-60">
+                  // Parallel processing pipeline with zero-copy
+                </span>
+                {"\n"}
+                {"    "}
+                <span className="text-white">input</span>.
+                <span className="text-white">par_iter()</span>
+                {"\n"}
+                {"        "}.<span className="text-white">filter</span>(|node|
+                node.<span className="text-accent-purple">is_valid</span>())
+                {"\n"}
+                {"        "}.<span className="text-white">map</span>(|node|
+                node.<span className="text-white">process_atomic</span>()){"\n"}
+                {"        "}.<span className="text-white">collect()</span>;
+                {"\n"}
+                {"\n"}
+                {"    "}
+                <span className="text-accent-purple">Ok</span>(()){"\n"}
+                {"}"}
               </pre>
             </div>
           </div>
@@ -74,7 +125,8 @@ const LandingPage = () => {
             <span className="text-white font-bold">4.2M</span> Submissions
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-white font-bold">104</span> Legendary Contributors
+            <span className="text-white font-bold">104</span> Legendary
+            Contributors
           </div>
         </div>
       </section>
@@ -86,13 +138,26 @@ const LandingPage = () => {
             {/* Card 1 */}
             <div className="glass-card rounded-xl p-12 purple-glow transition-all duration-500 group flex flex-col h-full">
               <div className="mb-8">
-                <span className="material-symbols-outlined text-accent-purple text-4xl">edit_note</span>
+                <span className="material-symbols-outlined text-accent-purple text-4xl">
+                  edit_note
+                </span>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 font-headline">The Silent Editor</h3>
-              <p className="text-on-surface/70 leading-relaxed mb-8">A distraction-free interface engineered for deep work. No popups, no noise. Just you and your logic.</p>
+              <h3 className="text-2xl font-bold text-white mb-4 font-headline">
+                The Silent Editor
+              </h3>
+              <p className="text-on-surface/70 leading-relaxed mb-8">
+                A distraction-free interface engineered for deep work. No
+                popups, no noise. Just you and your logic.
+              </p>
               <div className="mt-auto">
-                <a className="text-xs font-mono text-accent-purple flex items-center gap-2 group-hover:gap-4 transition-all" href="#">
-                  EXPLORE WORKSPACE <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                <a
+                  className="text-xs font-mono text-accent-purple flex items-center gap-2 group-hover:gap-4 transition-all"
+                  href="#"
+                >
+                  EXPLORE WORKSPACE{" "}
+                  <span className="material-symbols-outlined text-sm">
+                    arrow_forward
+                  </span>
                 </a>
               </div>
             </div>
@@ -100,13 +165,26 @@ const LandingPage = () => {
             {/* Card 2 */}
             <div className="glass-card rounded-xl p-12 purple-glow transition-all duration-500 group flex flex-col h-full">
               <div className="mb-8">
-                <span className="material-symbols-outlined text-accent-purple text-4xl">terminal</span>
+                <span className="material-symbols-outlined text-accent-purple text-4xl">
+                  terminal
+                </span>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 font-headline">Dockerized Sandbox</h3>
-              <p className="text-on-surface/70 leading-relaxed mb-8">Run your code in secure, ephemeral environments with ultra-low latency. Supports high-performance languages.</p>
+              <h3 className="text-2xl font-bold text-white mb-4 font-headline">
+                Dockerized Sandbox
+              </h3>
+              <p className="text-on-surface/70 leading-relaxed mb-8">
+                Run your code in secure, ephemeral environments with ultra-low
+                latency. Supports high-performance languages.
+              </p>
               <div className="mt-auto">
-                <a className="text-xs font-mono text-accent-purple flex items-center gap-2 group-hover:gap-4 transition-all" href="#">
-                  SYSTEM SPECS <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                <a
+                  className="text-xs font-mono text-accent-purple flex items-center gap-2 group-hover:gap-4 transition-all"
+                  href="#"
+                >
+                  SYSTEM SPECS{" "}
+                  <span className="material-symbols-outlined text-sm">
+                    arrow_forward
+                  </span>
                 </a>
               </div>
             </div>
@@ -114,13 +192,26 @@ const LandingPage = () => {
             {/* Card 3 */}
             <div className="glass-card rounded-xl p-12 purple-glow transition-all duration-500 group flex flex-col h-full">
               <div className="mb-8">
-                <span className="material-symbols-outlined text-accent-purple text-4xl">auto_awesome</span>
+                <span className="material-symbols-outlined text-accent-purple text-4xl">
+                  auto_awesome
+                </span>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4 font-headline">Editorial Insight</h3>
-              <p className="text-on-surface/70 leading-relaxed mb-8">Access curated breakdowns written by industry veterans. Learn the 'why' behind the world's most elegant solutions.</p>
+              <h3 className="text-2xl font-bold text-white mb-4 font-headline">
+                Editorial Insight
+              </h3>
+              <p className="text-on-surface/70 leading-relaxed mb-8">
+                Access curated breakdowns written by industry veterans. Learn
+                the 'why' behind the world's most elegant solutions.
+              </p>
               <div className="mt-auto">
-                <a className="text-xs font-mono text-accent-purple flex items-center gap-2 group-hover:gap-4 transition-all" href="#">
-                  READ EDITORIALS <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                <a
+                  className="text-xs font-mono text-accent-purple flex items-center gap-2 group-hover:gap-4 transition-all"
+                  href="#"
+                >
+                  READ EDITORIALS{" "}
+                  <span className="material-symbols-outlined text-sm">
+                    arrow_forward
+                  </span>
                 </a>
               </div>
             </div>
@@ -139,7 +230,8 @@ const LandingPage = () => {
             CODE THE <span className="text-accent-purple">FUTURE</span>.
           </h2>
           <p className="text-lg md:text-xl text-secondary mb-12 max-w-2xl mx-auto">
-            Join the elite tier of developers solving problems that define the next generation of software architecture.
+            Join the elite tier of developers solving problems that define the
+            next generation of software architecture.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform active:scale-95 shadow-xl">
@@ -154,14 +246,41 @@ const LandingPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-screen-2xl mx-auto">
           <div className="flex flex-col gap-2">
             <div className="text-lg font-black text-white">Obsidian</div>
-            <p className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6]">© 2024 Obsidian Editorial. Built for the silent curator.</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6]">
+              © 2024 Obsidian Editorial. Built for the silent curator.
+            </p>
           </div>
           <div className="flex flex-wrap justify-center gap-8">
-            <a className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity" href="#">Privacy</a>
-            <a className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity" href="#">Terms</a>
-            <a className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity" href="#">Changelog</a>
-            <a className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity" href="#">Status</a>
-            <a className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity" href="#">Github</a>
+            <a
+              className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity"
+              href="#"
+            >
+              Privacy
+            </a>
+            <a
+              className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity"
+              href="#"
+            >
+              Terms
+            </a>
+            <a
+              className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity"
+              href="#"
+            >
+              Changelog
+            </a>
+            <a
+              className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity"
+              href="#"
+            >
+              Status
+            </a>
+            <a
+              className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6] hover:text-white underline-offset-4 hover:underline transition-opacity"
+              href="#"
+            >
+              Github
+            </a>
           </div>
         </div>
       </footer>

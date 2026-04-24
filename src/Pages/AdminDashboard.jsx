@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
+import api from "../services/api"; // ← axios instance with baseURL & auth interceptor
 
 const AdminDashboard = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,22 +12,20 @@ const AdminDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch problems from API (unchanged)
   useEffect(() => {
     const fetchProblems = async () => {
       try {
         setLoading(true);
         setError(null);
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-        const response = await fetch(`${baseUrl}/api/problems`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch problems: ${response.status}`);
-        }
-        const data = await response.json();
-        setProblems(Array.isArray(data) ? data : []);
+        const response = await api.get("/problems");
+        setProblems(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching problems:", err);
-        setError(err.message || "An unknown error occurred");
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "An unknown error occurred",
+        );
       } finally {
         setLoading(false);
       }
@@ -35,7 +34,6 @@ const AdminDashboard = () => {
     fetchProblems();
   }, []);
 
-  // Filter, pagination, stats (unchanged)
   const filteredProblems = useMemo(() => {
     if (!searchTerm.trim()) return problems;
     const lowerSearch = searchTerm.toLowerCase();
@@ -50,10 +48,10 @@ const AdminDashboard = () => {
     setCurrentPage(1);
   }, [filteredProblems.length]);
 
-  const totalPages = Math.ceil(filteredProblems.length / 10);
+  const totalPages = Math.ceil(filteredProblems.length / itemsPerPage);
   const paginatedProblems = useMemo(() => {
-    const startIndex = (currentPage - 1) * 10;
-    return filteredProblems.slice(startIndex, startIndex + 10);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProblems.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredProblems, currentPage]);
 
   const totalProblems = problems.length;
@@ -65,7 +63,6 @@ const AdminDashboard = () => {
     return `${Math.round(percentValue)}%`;
   };
 
-  // Updated handleEdit: navigate to edit page with problem slug
   const handleEdit = (problemSlug) => {
     navigate(`/admin/problems/edit/${problemSlug}`);
   };
@@ -74,21 +71,15 @@ const AdminDashboard = () => {
     if (!window.confirm("Are you sure you want to delete this problem?"))
       return;
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const response = await fetch(`${baseUrl}/api/problems/${problemId}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete problem");
-      // Remove from local state or refetch
+      await api.delete(`/problems/${problemId}`);
       setProblems((prev) => prev.filter((p) => p.id !== problemId));
       alert("Problem deleted successfully");
     } catch (err) {
       console.error(err);
-      alert("Error deleting problem");
+      alert(err.response?.data?.message || "Error deleting problem");
     }
   };
 
-  // Pagination handlers (unchanged)
   const goToPreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
@@ -97,13 +88,16 @@ const AdminDashboard = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
-  const startIndex = (currentPage - 1) * 10 + 1;
-  const endIndex = Math.min(currentPage * 10, filteredProblems.length);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(
+    currentPage * itemsPerPage,
+    filteredProblems.length,
+  );
 
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto py-10">
-        {/* Page Header with Add Problem button */}
+        {/* Header with Add Problem button */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div>
             <nav className="flex gap-2 text-[10px] font-mono text-secondary uppercase tracking-[0.2em] mb-4">
@@ -128,7 +122,6 @@ const AdminDashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* Add New Problem button */}
             <button
               onClick={() => navigate("/admin/problems/new")}
               className="bg-primary text-black px-6 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-all"
@@ -139,7 +132,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Bento Grid (unchanged) */}
+        {/* Stats Bento Grid */}
         <div className="grid grid-cols-12 gap-6 mb-12">
           <div className="col-span-12 md:col-span-4 bg-surface-container-low p-8 rounded-3xl relative overflow-hidden group">
             <div className="relative z-10">
@@ -191,7 +184,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Problem Table (unchanged except delete now works) */}
+        {/* Problem Table */}
         <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -299,7 +292,7 @@ const AdminDashboard = () => {
                                 ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
                                 : "bg-secondary"
                             }`}
-                          ></div>
+                          />
                           <span
                             className={`text-xs font-medium ${
                               problem.live
@@ -330,9 +323,9 @@ const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-8 py-6 text-right">
-                        <div className="flex justify-end gap-3 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-end gap-3">
                           <button
-                            onClick={() => handleEdit(problem.slug)} // Pass slug instead of id
+                            onClick={() => handleEdit(problem.slug)}
                             className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-secondary hover:bg-primary/20 hover:text-primary transition-all"
                           >
                             <span className="material-symbols-outlined text-lg">
@@ -355,7 +348,8 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
-          {/* Pagination (unchanged) */}
+
+          {/* Pagination */}
           <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between">
             <span className="text-secondary font-mono text-[10px] tracking-widest uppercase">
               Showing {filteredProblems.length === 0 ? 0 : startIndex}-
@@ -382,7 +376,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Footer Metadata */}
+        {/* Footer */}
         <div className="mt-24 mb-12 flex justify-between items-center opacity-40">
           <div className="flex items-center gap-6 text-white">
             <span className="text-[10px] font-mono tracking-[0.3em] uppercase">
