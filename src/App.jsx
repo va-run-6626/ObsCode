@@ -1,18 +1,28 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./Pages/HomePage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProblemUploadInterface from "./Pages/ProblemUploadInterface";
 import LandingPage from "./Pages/LandingPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
-import OAuthCallback from "./Pages/OAuthCallback";
 import VerifyEmail from "./Pages/VerifyEmail";
 import EditorPage from "./Pages/EditorPage";
 import { AuthProvider } from "./context/AuthContext";
 import AdminLayout from "./Layouts/AdminLayout";
+import UserLayout from "./Layouts/UserLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminUsers from "./Pages/AdminUsers";
 import AdminSettings from "./Pages/AdminSettings";
+import { useAuth } from "./context/AuthContext";
+
+const RootRoute = () => {
+  const { user, loading } = useAuth();
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+
+  if (loading) return <div className="text-white">Loading...</div>;
+  if (!user) return <LandingPage />;
+
+  return <Navigate to={isAdmin ? "/admin/dashboard" : "/editor"} replace />;
+};
 
 function App() {
   return (
@@ -20,7 +30,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<RootRoute />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
           {/* <Route path="/oauth-callback" element={<OAuthCallback />} /> */}
@@ -28,12 +38,17 @@ function App() {
 
           {/* Protected routes for authenticated users */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/editor" element={<EditorPage key="editor-home" />} />
-            <Route
-              path="/editor/:slug"
-              element={<EditorPage key="editor-problem" />}
-            />
-            {/* Add other user routes here, e.g., /problems, /submissions */}
+            <Route element={<UserLayout />}>
+              <Route
+                path="/editor"
+                element={<EditorPage key="editor-home" />}
+              />
+              <Route
+                path="/editor/:slug"
+                element={<EditorPage key="editor-problem" />}
+              />
+              {/* Add other user routes here, e.g., /problems, /submissions */}
+            </Route>
           </Route>
 
           {/* Admin routes (require ADMIN role) */}

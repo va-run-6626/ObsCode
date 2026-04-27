@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api"; // ← axios instance with baseURL & auth interceptor
+import ProblemTable from "../components/ProblemsTable";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -93,6 +94,24 @@ const AdminDashboard = () => {
     safeCurrentPage * itemsPerPage,
     filteredProblems.length,
   );
+
+  if (loading) {
+    return <div className="text-center py-20 text-white">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20 text-red-400">
+        <p>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-primary/20 rounded-lg text-primary"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-10">
@@ -187,201 +206,13 @@ const AdminDashboard = () => {
       </div>
 
       {/* Problem Table */}
-      <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low/50">
-                <th className="px-8 py-6 text-[10px] font-mono font-medium text-secondary uppercase tracking-[0.2em]">
-                  Problem
-                </th>
-                <th className="px-8 py-6 text-[10px] font-mono font-medium text-secondary uppercase tracking-[0.2em]">
-                  Status
-                </th>
-                <th className="px-8 py-6 text-[10px] font-mono font-medium text-secondary uppercase tracking-[0.2em]">
-                  Acceptance
-                </th>
-                <th className="px-8 py-6 text-[10px] font-mono font-medium text-secondary uppercase tracking-[0.2em]">
-                  Difficulty
-                </th>
-                <th className="px-8 py-6 text-[10px] font-mono font-medium text-secondary uppercase tracking-[0.2em] text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-8 py-12 text-center text-secondary"
-                  >
-                    <div className="flex justify-center items-center gap-3">
-                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span>Loading problems...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-12 text-center text-error">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="material-symbols-outlined text-3xl">
-                        error
-                      </span>
-                      <span>Failed to load problems: {error}</span>
-                      <button
-                        onClick={() => window.location.reload()}
-                        className="mt-2 px-4 py-2 bg-primary/20 rounded-lg text-primary text-sm"
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ) : paginatedProblems.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-8 py-12 text-center text-secondary"
-                  >
-                    {searchTerm
-                      ? "No problems match your search criteria."
-                      : "No problems found."}
-                  </td>
-                </tr>
-              ) : (
-                paginatedProblems.map((problem) => (
-                  <tr
-                    key={problem.id}
-                    className="hover:bg-surface-container-low/30 transition-colors group"
-                  >
-                    <td className="px-8 py-6">
-                      <div className="flex flex-col">
-                        <span className="text-white font-bold text-base tracking-tight group-hover:text-primary transition-colors">
-                          {problem.title}
-                        </span>
-                        <span className="text-secondary font-mono text-xs mt-1">
-                          {problem.slug}
-                        </span>
-                        {problem.tags && problem.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {problem.tags.slice(0, 2).map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-white/5 text-secondary/70"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                            {problem.tags.length > 2 && (
-                              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-white/5 text-secondary/70">
-                                +{problem.tags.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            problem.live
-                              ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-                              : "bg-secondary"
-                          }`}
-                        />
-                        <span
-                          className={`text-xs font-medium ${
-                            problem.live ? "text-on-surface" : "text-secondary"
-                          }`}
-                        >
-                          {problem.live ? "Live" : "Draft"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className="text-white font-mono text-sm">
-                        {formatAcceptanceRate(problem.acceptanceRate)}
-                      </span>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                          problem.difficulty === "Hard"
-                            ? "bg-red-950/30 text-red-400 border-red-500/20"
-                            : problem.difficulty === "Medium"
-                              ? "bg-orange-950/30 text-orange-400 border-orange-500/20"
-                              : "bg-emerald-950/30 text-emerald-400 border-emerald-500/20"
-                        }`}
-                      >
-                        {problem.difficulty}
-                      </span>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex justify-end gap-3">
-                        <button
-                          onClick={() => handlePlay(problem.slug)}
-                          className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-secondary hover:bg-green-500/20 hover:text-green-400 transition-all"
-                          title="Open in editor"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            play_arrow
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleEdit(problem.slug)}
-                          className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-secondary hover:bg-primary/20 hover:text-primary transition-all"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            edit
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(problem.id)}
-                          className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-secondary hover:bg-error/20 hover:text-error transition-all"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            delete
-                          </span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between">
-          <span className="text-secondary font-mono text-[10px] tracking-widest uppercase">
-            Showing {filteredProblems.length === 0 ? 0 : startIndex}-{endIndex}{" "}
-            of {filteredProblems.length} results
-          </span>
-          <div className="flex gap-2">
-            <button
-              className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary hover:text-black transition-all disabled:opacity-30 disabled:hover:bg-surface-container-low disabled:hover:text-white"
-              onClick={goToPreviousPage}
-              disabled={safeCurrentPage === 1 || filteredProblems.length === 0}
-            >
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button
-              className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary hover:text-black transition-all disabled:opacity-30 disabled:hover:bg-surface-container-low disabled:hover:text-white"
-              onClick={goToNextPage}
-              disabled={
-                safeCurrentPage === totalPages || filteredProblems.length === 0
-              }
-            >
-              <span className="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
+      <ProblemTable
+        problems={paginatedProblems}
+        role="admin"
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onSolve={handlePlay}
+      />
       {/* Footer */}
       <div className="mt-24 mb-12 flex justify-between items-center opacity-40">
         <div className="flex items-center gap-6 text-white">

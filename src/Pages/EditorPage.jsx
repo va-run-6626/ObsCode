@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import ReactMarkdown from "react-markdown";
-import Sidebar from "../components/Sidebar";
 import ConsoleOutput from "../components/ConsoleOutput";
 import api from "../services/api";
 
@@ -172,61 +171,9 @@ const EditorPage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-black text-on-background font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
-      {/* SideNavBar */}
-      <Sidebar />
-
-      {/* Main Content */}
-      <div className="flex-1 ml-20 flex flex-col min-w-0">
-        {/* TopNavBar */}
-        <header className="bg-[#131313]/70 backdrop-blur-xl flex justify-between items-center px-12 py-4 border-b border-outline-variant/10">
-          <div className="flex items-center gap-8">
-            <h1 className="text-xl font-bold tracking-tighter text-white">
-              {problem?.title || "Obs Play"}
-            </h1>
-            <nav className="hidden md:flex items-center gap-6 font-medium">
-              <Link
-                className="text-[#C7C6C6] hover:text-white transition-opacity opacity-80 hover:opacity-100"
-                to="#"
-              >
-                Explorer
-              </Link>
-              <Link
-                className="text-white border-b-2 border-white pb-1 opacity-80 hover:opacity-100"
-                to="#"
-              >
-                Debugger
-              </Link>
-              <Link
-                className="text-[#C7C6C6] hover:text-white transition-opacity opacity-80 hover:opacity-100"
-                to="#"
-              >
-                Terminal
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-sm">
-                search
-              </span>
-              <input
-                className="bg-surface-container-low border-none rounded-xl py-2 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-white transition-all outline-none"
-                placeholder="Quick search..."
-                type="text"
-              />
-            </div>
-            <button className="p-2 text-[#C7C6C6] hover:text-white">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Workspace */}
-        <main
-          ref={containerRef}
-          className="flex-1 flex overflow-hidden relative"
-        >
+    <div className="h-full bg-black text-on-background font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+      {/* Workspace */}
+      <main ref={containerRef} className="h-full flex overflow-hidden relative">
           {/* Left Panel */}
           <section
             style={{ width: `${leftPanelWidth}%` }}
@@ -563,8 +510,7 @@ const EditorPage = () => {
               />
             )}
           </section>
-        </main>
-      </div>
+      </main>
 
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.03] z-[-1]"
