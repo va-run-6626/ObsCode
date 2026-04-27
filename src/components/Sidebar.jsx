@@ -1,87 +1,93 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const Sidebar = ({ isCollapsed, onToggle }) => {
-  const navigate = useNavigate();
+const Sidebar = () => {
   const location = useLocation();
+  const { user } = useAuth();
 
-  const navItems = [
-    { name: "Dashboard", icon: "dashboard", path: "/admin/dashboard" },
-    { name: "Play", icon: "play_circle", path: "/admin/play" },
-    { name: "Users", icon: "group", path: "/admin/users" },
-    { name: "Settings", icon: "tune", path: "/admin/settings" },
-  ];
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+
+  const navItems = isAdmin
+    ? [
+        { icon: "grid_view", label: "Dashboard", path: "/admin/dashboard" },
+        { icon: "group", label: "Users", path: "/admin/users" },
+        { icon: "tune", label: "Settings", path: "/admin/settings" },
+      ]
+    : [
+        { icon: "code", label: "Editor", path: "/editor" },
+        { icon: "list_alt", label: "Problems", path: "/problems" },
+        { icon: "history", label: "Submissions", path: "/submissions" },
+        { icon: "settings", label: "Settings", path: "/settings" },
+      ];
+
+  // Fallback avatar: a neutral SVG data URI (no network request)
+  const defaultAvatar =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23333333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23aaaaaa' font-size='14' font-family='monospace'%3E%3C/text%3E%3C/svg%3E";
+  const avatarUrl = user?.avatarUrl || defaultAvatar;
 
   return (
-    <aside
-      className={`h-screen fixed left-0 top-0 bg-[#0E0E0E] flex flex-col pt-24 transition-all duration-300 z-40 ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
-    >
-      <div className={`px-6 mb-8 ${isCollapsed ? "hidden" : "block"}`}>
-        <h2 className="text-white font-black text-xl tracking-tight uppercase">
-          ObsCode Admin
-        </h2>
-        <p className="text-secondary text-[10px] font-mono tracking-widest uppercase mt-1">
-          Problem Management
-        </p>
+    <aside className="fixed left-0 top-0 h-full z-50 flex flex-col items-center py-8 bg-[#131313] rounded-r-[24px] w-20 hover:w-64 transition-all duration-300 shadow-[0px_20px_40px_rgba(0,0,0,0.4)] font-['Inter'] tracking-tight group overflow-hidden">
+      <div className="mb-10 px-6 flex items-center w-full">
+        <Link to="/" className="flex items-center">
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
+            <span
+              className="material-symbols-outlined text-[#131313] text-sm"
+              style={{ fontVariationSettings: '"FILL" 1' }}
+            >
+              terminal
+            </span>
+          </div>
+          <span className="ml-4 text-white font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Obsidian
+          </span>
+        </Link>
       </div>
 
-      <div
-        className={`flex justify-center mb-4 ${isCollapsed ? "block" : "hidden"}`}
-      >
-        <span className="text-white font-black text-xl tracking-tight uppercase">
-          OBS.
-        </span>
-      </div>
-
-      <nav className="flex-1 space-y-1 px-4">
+      <nav className="flex flex-col gap-4 w-full px-4">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <a
-              key={item.name}
-              onClick={() => navigate(item.path)}
-              className={`flex items-center gap-4 py-3 px-4 rounded-full transition-all cursor-pointer active:scale-95 group ${
+            <Link
+              key={item.label}
+              to={item.path}
+              className={`${
                 isActive
-                  ? "text-white font-bold bg-[#353535]"
-                  : "text-[#C7C6C6] hover:bg-[#1B1B1B]"
-              }`}
-              title={isCollapsed ? item.name : ""}
+                  ? "bg-white text-[#131313]"
+                  : "text-[#C7C6C6] hover:text-white hover:bg-[#353535]"
+              } rounded-full p-3 flex items-center transition-all duration-200 group/item`}
             >
-              <span className="material-symbols-outlined">{item.icon}</span>
-              {!isCollapsed && (
-                <span className="font-medium text-sm tracking-wide">
-                  {item.name}
-                </span>
-              )}
-            </a>
+              <span
+                className="material-symbols-outlined"
+                style={isActive ? { fontVariationSettings: '"FILL" 1' } : {}}
+              >
+                {item.icon}
+              </span>
+              <span className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-medium">
+                {item.label}
+              </span>
+            </Link>
           );
         })}
       </nav>
 
-      <div
-        className={`p-4 mt-auto mb-24 transition-all duration-300 ${isCollapsed ? "px-2" : "px-4"}`}
-      >
-        <button
-          onClick={() => navigate("/admin/problems/new")}
-          className={`w-full bg-primary text-on-primary py-4 rounded-3xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 overflow-hidden whitespace-nowrap`}
-          title={isCollapsed ? "New Problem" : ""}
-        >
-          <span className="material-symbols-outlined">add</span>
-          {!isCollapsed && <span>New Problem</span>}
-        </button>
+      <div className="mt-auto px-6 w-full flex items-center">
+        <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 overflow-hidden">
+          <img
+            alt="User Profile"
+            className="w-full h-full object-cover"
+            src={avatarUrl}
+          />
+        </div>
+        <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          <p className="text-xs font-bold text-white leading-none">
+            {user?.name || "User Profile"}
+          </p>
+          <p className="text-[10px] text-secondary">
+            {isAdmin ? "Admin" : "Pro Editor"}
+          </p>
+        </div>
       </div>
-
-      {/* Toggle Button at the bottom of sidebar or somewhere visible */}
-      <button
-        onClick={onToggle}
-        className="absolute bottom-10 right-0 translate-x-1/2 w-8 h-8 bg-[#353535] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:text-black transition-all z-50"
-      >
-        <span className="material-symbols-outlined text-sm">
-          {isCollapsed ? "chevron_right" : "chevron_left"}
-        </span>
-      </button>
     </aside>
   );
 };

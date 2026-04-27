@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import Papa from "papaparse";
 import ReactMarkdown from "react-markdown";
-import AdminLayout from "../components/AdminLayout";
+import AdminLayout from "../Layouts/AdminLayout";
 import api from "../services/api";
 
 const LANGUAGES = ["C++", "Java", "JavaScript", "Python"];

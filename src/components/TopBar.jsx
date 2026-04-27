@@ -1,12 +1,8 @@
 import React from "react";
 
-const TopBar = ({ isSidebarCollapsed }) => {
+const TopBar = () => {
   return (
-    <header
-      className={`bg-[#131313] shadow-[0_1px_0_0_rgba(255,255,255,0.05)] docked full-width top-0 z-50 flex justify-between items-center px-8 h-20 fixed transition-all duration-300 ${
-        isSidebarCollapsed ? "left-20" : "left-64"
-      } right-0`}
-    >
+    <header className="fixed top-0 left-20 right-0 h-20 bg-[#131313] shadow-[0_1px_0_0_rgba(255,255,255,0.05)] z-40 flex justify-between items-center px-8">
       <div className="flex items-center gap-8">
         <span className="text-lg font-bold tracking-tighter text-white uppercase font-headline">
           ObsCode

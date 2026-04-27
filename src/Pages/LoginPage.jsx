@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../services/api"; // adjust path if needed
+import api from "../services/api";
+import { useAuth } from "../context/AuthContext"; // import the hook
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // get login function from context
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,17 +18,13 @@ const LoginPage = () => {
 
     try {
       const response = await api.post("/auth/login", { email, password });
-      const { token, role, name, avatarUrl, email: userEmail } = response.data;
+      const userData = response.data; // { token, type, email, name, avatarUrl, role, message }
 
-      // Store authentication data
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("email", userEmail);
-      localStorage.setItem("name", name);
-      if (avatarUrl) localStorage.setItem("avatar", avatarUrl);
+      // Store everything using the context login method
+      login(userData);
 
       // Redirect based on role
-      if (role === "ADMIN") {
+      if (userData.role === "ADMIN") {
         navigate("/admin/dashboard");
       } else {
         navigate("/dashboard"); // or "/problems"
