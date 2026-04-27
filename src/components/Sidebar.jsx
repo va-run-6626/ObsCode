@@ -16,6 +16,7 @@ const Sidebar = () => {
         { icon: "tune", label: "Settings", path: "/admin/settings" },
       ]
     : [
+        { icon: "grid_view", label: "Dashboard", path: "/dashboard" },
         { icon: "code", label: "Editor", path: "/editor" },
         { icon: "list_alt", label: "Problems", path: "/problems" },
         { icon: "history", label: "Submissions", path: "/submissions" },

@@ -6,6 +6,10 @@ import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
 import VerifyEmail from "./Pages/VerifyEmail";
 import EditorPage from "./Pages/EditorPage";
+import UserDashboard from "./Pages/UserDashboard";
+import ProblemsPage from "./Pages/ProblemsPage";
+import UserSettingsPage from "./Pages/UserSettingsPage";
+import StreakRulesPage from "./Pages/StreakRulesPage";
 import { AuthProvider } from "./context/AuthContext";
 import AdminLayout from "./Layouts/AdminLayout";
 import UserLayout from "./Layouts/UserLayout";
@@ -21,7 +25,7 @@ const RootRoute = () => {
   if (loading) return <div className="text-white">Loading...</div>;
   if (!user) return <LandingPage />;
 
-  return <Navigate to={isAdmin ? "/admin/dashboard" : "/editor"} replace />;
+  return <Navigate to={isAdmin ? "/admin/dashboard" : "/dashboard"} replace />;
 };
 
 function App() {
@@ -39,6 +43,10 @@ function App() {
           {/* Protected routes for authenticated users */}
           <Route element={<ProtectedRoute />}>
             <Route element={<UserLayout />}>
+              <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/problems" element={<ProblemsPage />} />
+              <Route path="/settings" element={<UserSettingsPage />} />
+              <Route path="/streak-rules" element={<StreakRulesPage />} />
               <Route
                 path="/editor"
                 element={<EditorPage key="editor-home" />}

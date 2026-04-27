@@ -9,7 +9,7 @@ const UserLayout = () => {
       <Sidebar />
       <div className="flex-1 ml-20 flex flex-col min-w-0">
         <TopBar />
-        <main className="pt-20 h-screen overflow-hidden">
+        <main className="pt-20 min-h-screen overflow-y-auto">
           <Outlet />
         </main>
       </div>
