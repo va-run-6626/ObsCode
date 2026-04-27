@@ -7,9 +7,11 @@ const LandingPage = () => {
       {/* TopNavBar */}
       <nav className="fixed top-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/5 shadow-[0px_20px_40px_rgba(0,0,0,0.4)]">
         <div className="flex justify-between items-center px-6 md:px-12 py-4 w-full max-w-screen-2xl mx-auto">
-          <div className="text-2xl font-bold tracking-tighter text-white font-headline">
-            ObsCode
-          </div>
+          <Link to="/">
+            <div className="font-mono font-bold text-2xl tracking-tighter text-primary cursor-pointer">
+              OBSCODE<span className="text-accent-purple">.</span>
+            </div>
+          </Link>
           <div className="hidden md:flex items-center space-x-8">
             <a
               className="font-headline tracking-tight text-sm font-medium text-white border-b-2 border-white pb-1"
@@ -19,7 +21,7 @@ const LandingPage = () => {
             </a>
             <a
               className="font-headline tracking-tight text-sm font-medium text-[#C7C6C6] hover:text-white transition-colors"
-              href="#"
+              href="https://garden-tan-seven.vercel.app/"
             >
               Library
             </a>
@@ -234,9 +236,11 @@ const LandingPage = () => {
             next generation of software architecture.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform active:scale-95 shadow-xl">
-              Apply for Access
-            </button>
+            <Link to="/signup">
+              <button className="bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform active:scale-95 shadow-xl">
+                Apply for Access
+              </button>
+            </Link>
           </div>
         </div>
       </section>

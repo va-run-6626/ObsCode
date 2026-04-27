@@ -19,7 +19,11 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/register", { email, password });
+      const response = await api.post("/auth/register", {
+        name,
+        email,
+        password,
+      });
       const { message, email: userEmail, name: userName } = response.data;
 
       // Only show success message – do NOT store token or redirect

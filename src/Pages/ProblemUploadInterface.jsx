@@ -4,7 +4,7 @@ import Editor from "@monaco-editor/react";
 import Papa from "papaparse";
 import ReactMarkdown from "react-markdown";
 import AdminLayout from "../components/AdminLayout";
-import api from "../services/api"; // ← axios instance
+import api from "../services/api";
 
 const LANGUAGES = ["C++", "Java", "JavaScript", "Python"];
 const LANGUAGE_MAP = {
@@ -55,6 +55,13 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
       JavaScript: "",
       Python: "",
     },
+    driverTemplates: {
+      // <-- NEW: driver templates per language
+      "C++": "",
+      Java: "",
+      JavaScript: "",
+      Python: "",
+    },
     solution: "",
     timeLimitMs: 1000,
     memoryLimitMb: 256,
@@ -66,6 +73,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [activeLang, setActiveLang] = useState("C++");
+  const [activeDriverLang, setActiveDriverLang] = useState("C++"); // <-- for driver template tabs
   const [previewLang, setPreviewLang] = useState("C++");
   const [toastVisible, setToastVisible] = useState(false);
 
@@ -95,6 +103,14 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
             Python: data.starterCode?.python || "",
           };
 
+          // Transform driverTemplates: lowercase keys -> capitalized keys
+          const transformedDriverTemplates = {
+            "C++": data.driverTemplates?.cpp || "",
+            Java: data.driverTemplates?.java || "",
+            JavaScript: data.driverTemplates?.javascript || "",
+            Python: data.driverTemplates?.python || "",
+          };
+
           setForm({
             title: data.title || "",
             slug: data.slug || "",
@@ -104,6 +120,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
             constraints: data.constraints || "",
             testCases: transformedTestCases,
             starterCode: transformedStarterCode,
+            driverTemplates: transformedDriverTemplates,
             solution: data.solution || "",
             timeLimitMs: data.timeLimitMs || 1000,
             memoryLimitMb: data.memoryLimitMb || 256,
@@ -131,6 +148,12 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
         constraints: "",
         testCases: [],
         starterCode: {
+          "C++": "",
+          Java: "",
+          JavaScript: "",
+          Python: "",
+        },
+        driverTemplates: {
           "C++": "",
           Java: "",
           JavaScript: "",
@@ -248,6 +271,14 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
     triggerAutoSave();
   };
 
+  const handleDriverTemplateChange = (lang, value) => {
+    setForm((prev) => ({
+      ...prev,
+      driverTemplates: { ...prev.driverTemplates, [lang]: value },
+    }));
+    triggerAutoSave();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -275,6 +306,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
         visible: tc.isPublic,
       })),
       starterCode: {},
+      driverTemplates: {}, // <-- send driver templates
       solution: form.solution,
       timeLimitMs: form.timeLimitMs,
       memoryLimitMb: form.memoryLimitMb,
@@ -283,11 +315,14 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
 
     // Map starterCode keys to lowercase
     Object.entries(form.starterCode).forEach(([lang, code]) => {
-      if (lang === "C++") bodyToSend.starterCode["cpp"] = code;
-      else if (lang === "Java") bodyToSend.starterCode["java"] = code;
-      else if (lang === "JavaScript")
-        bodyToSend.starterCode["javascript"] = code;
-      else if (lang === "Python") bodyToSend.starterCode["python"] = code;
+      const key = LANGUAGE_MAP[lang];
+      if (key) bodyToSend.starterCode[key] = code;
+    });
+
+    // Map driverTemplates keys to lowercase
+    Object.entries(form.driverTemplates).forEach(([lang, template]) => {
+      const key = LANGUAGE_MAP[lang];
+      if (key) bodyToSend.driverTemplates[key] = template;
     });
 
     try {
@@ -296,7 +331,6 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
       } else {
         await api.post("/problems", bodyToSend);
       }
-
       setMessage({
         type: "success",
         text: `Problem ${mode === "edit" ? "updated" : "created"} successfully!`,
@@ -339,7 +373,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
   return (
     <AdminLayout>
       <div className="text-on-background font-body relative">
-        {/* Toast notification – same JSX */}
+        {/* Toast notification */}
         {toastVisible && (
           <div className="fixed top-24 right-8 z-[100] flex items-center gap-4 bg-surface-container-highest p-4 pr-8 rounded-3xl shadow-2xl border border-white/5 animate-in fade-in slide-in-from-top-4">
             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-zinc-950">
@@ -356,19 +390,19 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
 
         <div className="flex flex-col">
           <section className="flex h-[calc(100vh-144px)] overflow-hidden">
-            {/* LEFT FORM PANEL – unchanged JSX */}
-            {/* ... the entire form UI remains exactly as you had ... */}
+            {/* LEFT FORM PANEL */}
             <div className="w-[40%] h-full overflow-y-auto custom-scrollbar bg-surface-container-low px-12 py-10">
               <form
                 onSubmit={handleSubmit}
                 className="max-w-xl mx-auto space-y-12"
               >
-                {/* Core Details */}
+                {/* Core Details (unchanged) */}
                 <div className="space-y-6">
                   <h2 className="text-2xl font-extrabold text-white tracking-tight">
                     Core Details
                   </h2>
                   <div className="space-y-4">
+                    {/* Title, Slug, Difficulty, Tags (unchanged) */}
                     <div>
                       <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-1 block px-1">
                         Problem Title
@@ -390,11 +424,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                           value={form.slug}
                           onChange={handleChange}
                           disabled={mode === "edit"}
-                          className={`w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 font-mono text-xs focus:ring-2 ring-white/20 transition-all ${
-                            mode === "edit"
-                              ? "text-zinc-500 cursor-not-allowed"
-                              : "text-zinc-300"
-                          }`}
+                          className={`w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 font-mono text-xs focus:ring-2 ring-white/20 transition-all ${mode === "edit" ? "text-zinc-500 cursor-not-allowed" : "text-zinc-300"}`}
                         />
                       </div>
                       <div>
@@ -423,7 +453,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                             key={tag}
                             className="bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2 border border-white/5"
                           >
-                            {tag}{" "}
+                            {tag}
                             <button
                               type="button"
                               onClick={() => removeTag(tag)}
@@ -453,7 +483,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
-                {/* Content */}
+                {/* Content (unchanged) */}
                 <div className="space-y-4">
                   <h2 className="text-2xl font-extrabold text-white tracking-tight">
                     Content
@@ -482,7 +512,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
-                {/* Test Cases */}
+                {/* Test Cases (unchanged) */}
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-extrabold text-white tracking-tight">
@@ -574,7 +604,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                   </div>
                 </div>
 
-                {/* Starter Code */}
+                {/* Starter Code (unchanged) */}
                 <div className="space-y-4">
                   <h2 className="text-2xl font-extrabold text-white tracking-tight">
                     Starter Code
@@ -586,11 +616,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                           key={lang}
                           type="button"
                           onClick={() => setActiveLang(lang)}
-                          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${
-                            activeLang === lang
-                              ? "bg-white text-black shadow-xl"
-                              : "text-zinc-400 hover:text-white"
-                          }`}
+                          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeLang === lang ? "bg-white text-black shadow-xl" : "text-zinc-400 hover:text-white"}`}
                         >
                           {lang}
                         </button>
@@ -611,35 +637,78 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                       }}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-1 block px-1">
-                        Time Limit (ms)
-                      </label>
-                      <input
-                        type="number"
-                        name="timeLimitMs"
-                        value={form.timeLimitMs}
-                        onChange={handleChange}
-                        className="w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 text-white font-mono focus:ring-2 ring-white/20 transition-all"
-                      />
+                </div>
+
+                {/* NEW: Driver Templates Section */}
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                    Driver Templates
+                  </h2>
+                  <p className="text-xs text-zinc-400 -mt-2">
+                    Full wrapper code that will be compiled/executed. Use{" "}
+                    <code className="bg-zinc-800 px-1 rounded text-[10px]">
+                      {"{{USER_CODE}}"}
+                    </code>
+                    placeholder for user's function body.
+                  </p>
+                  <div className="bg-surface-container-lowest rounded-3xl overflow-hidden border border-white/5">
+                    <div className="flex bg-white/5 p-1 border-b border-white/5 gap-1">
+                      {LANGUAGES.map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => setActiveDriverLang(lang)}
+                          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all ${activeDriverLang === lang ? "bg-white text-black shadow-xl" : "text-zinc-400 hover:text-white"}`}
+                        >
+                          {lang}
+                        </button>
+                      ))}
                     </div>
-                    <div>
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-1 block px-1">
-                        Memory Limit (MB)
-                      </label>
-                      <input
-                        type="number"
-                        name="memoryLimitMb"
-                        value={form.memoryLimitMb}
-                        onChange={handleChange}
-                        className="w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 text-white font-mono focus:ring-2 ring-white/20 transition-all"
-                      />
-                    </div>
+                    <Editor
+                      height="300px"
+                      language={getMonacoLang(activeDriverLang)}
+                      value={form.driverTemplates[activeDriverLang]}
+                      onChange={(val) =>
+                        handleDriverTemplateChange(activeDriverLang, val || "")
+                      }
+                      theme="vs-dark"
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 12,
+                        scrollBeyondLastLine: false,
+                      }}
+                    />
                   </div>
                 </div>
 
-                {/* Live Checkbox */}
+                {/* Limits & Live Checkbox (unchanged) */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-1 block px-1">
+                      Time Limit (ms)
+                    </label>
+                    <input
+                      type="number"
+                      name="timeLimitMs"
+                      value={form.timeLimitMs}
+                      onChange={handleChange}
+                      className="w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 text-white font-mono focus:ring-2 ring-white/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-1 block px-1">
+                      Memory Limit (MB)
+                    </label>
+                    <input
+                      type="number"
+                      name="memoryLimitMb"
+                      value={form.memoryLimitMb}
+                      onChange={handleChange}
+                      className="w-full bg-surface-container-lowest border-none rounded-2xl py-3 px-6 text-white font-mono focus:ring-2 ring-white/20 transition-all"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-3 my-6">
                   <input
                     type="checkbox"
@@ -676,11 +745,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
                 </button>
                 {message && (
                   <div
-                    className={`p-3 rounded-md text-sm ${
-                      message.type === "error"
-                        ? "bg-red-900/50 text-red-200"
-                        : "bg-green-900/50 text-green-200"
-                    }`}
+                    className={`p-3 rounded-md text-sm ${message.type === "error" ? "bg-red-900/50 text-red-200" : "bg-green-900/50 text-green-200"}`}
                   >
                     {message.text}
                   </div>
@@ -688,8 +753,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
               </form>
             </div>
 
-            {/* RIGHT LIVE PREVIEW PANEL – unchanged JSX */}
-            {/* (keeping exactly as you had – no API calls there) */}
+            {/* RIGHT LIVE PREVIEW PANEL – unchanged */}
             <div className="w-[60%] h-full bg-background relative border-l border-white/5 p-8 flex flex-col gap-6">
               <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 pointer-events-none">
                 <span className="text-[10px] uppercase tracking-[0.2em] font-black text-white/60">

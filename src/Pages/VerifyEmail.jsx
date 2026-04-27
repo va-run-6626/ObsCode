@@ -18,11 +18,16 @@ const VerifyEmail = () => {
         .get(`/auth/verify?token=${token}`)
         .then(() => {
           setStatus("SEQUENCE COMPLETE");
-          setMessage("Your identity has been verified in the architectural lattice.");
+          setMessage(
+            "Your identity has been verified in the architectural lattice.",
+          );
         })
         .catch((err) => {
           setStatus("SYSTEM ERROR");
-          setMessage(err.response?.data?.message || "Verification failed or token expired.");
+          setMessage(
+            err.response?.data?.message ||
+              "Verification failed or token expired.",
+          );
         });
     } else {
       setStatus("SYSTEM ERROR");
@@ -48,20 +53,28 @@ const VerifyEmail = () => {
       {/* TopNavBar */}
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-[#131313]/70 backdrop-blur-xl">
         <div className="flex items-center gap-2">
-          <Link to="/" className="text-xl font-black tracking-tighter text-white font-headline">
-            ObsCode
+          <Link to="/">
+            <div className="font-mono font-bold text-2xl tracking-tighter text-primary cursor-pointer">
+              OBSCODE<span className="text-accent-purple">.</span>
+            </div>
           </Link>
         </div>
         <div className="flex items-center gap-8">
           <div className="hidden md:flex gap-6 items-center text-[#C7C6C6] font-['Inter'] tracking-tight text-sm">
-            <a className="hover:text-white transition-colors duration-300" href="#">
+            <a
+              className="hover:text-white transition-colors duration-300"
+              href="#"
+            >
               Help
             </a>
           </div>
           <div className="flex items-center gap-4">
             <button
               className="material-symbols-outlined text-white hover:opacity-70 transition-opacity"
-              style={{ fontVariationSettings: "'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 48" }}
+              style={{
+                fontVariationSettings:
+                  "'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 48",
+              }}
             >
               terminal
             </button>
@@ -85,8 +98,8 @@ const VerifyEmail = () => {
                     status === "SEQUENCE COMPLETE"
                       ? "bg-purple-500 animate-pulse"
                       : status === "SYSTEM ERROR"
-                      ? "bg-red-500"
-                      : "bg-purple-500 animate-pulse"
+                        ? "bg-red-500"
+                        : "bg-purple-500 animate-pulse"
                   }`}
                 ></div>
                 <span
@@ -94,12 +107,16 @@ const VerifyEmail = () => {
                     status === "SEQUENCE COMPLETE"
                       ? "text-purple-400"
                       : status === "SYSTEM ERROR"
-                      ? "text-red-400"
-                      : "text-purple-400"
+                        ? "text-red-400"
+                        : "text-purple-400"
                   }`}
                   style={{ fontVariationSettings: "'FILL' 0, 'wght' 100" }}
                 >
-                  {status === "SEQUENCE COMPLETE" ? "task_alt" : status === "SYSTEM ERROR" ? "error" : "sync"}
+                  {status === "SEQUENCE COMPLETE"
+                    ? "task_alt"
+                    : status === "SYSTEM ERROR"
+                      ? "error"
+                      : "sync"}
                 </span>
               </div>
             </div>
@@ -110,7 +127,9 @@ const VerifyEmail = () => {
                 {status}
               </h1>
               <p className="text-secondary text-sm md:text-base leading-relaxed max-w-xs mx-auto font-body">
-                {message || (status === "INITIALIZING" && "Scanning architectural lattice for identity match...")}
+                {message ||
+                  (status === "INITIALIZING" &&
+                    "Scanning architectural lattice for identity match...")}
               </p>
             </div>
 
@@ -122,7 +141,10 @@ const VerifyEmail = () => {
                   to="/login"
                 >
                   INITIALIZE SESSION
-                  <span className="material-symbols-outlined text-lg" data-icon="login">
+                  <span
+                    className="material-symbols-outlined text-lg"
+                    data-icon="login"
+                  >
                     login
                   </span>
                 </Link>
@@ -132,12 +154,16 @@ const VerifyEmail = () => {
                   to="/signup"
                 >
                   RETURN TO ORIGIN
-                  <span className="material-symbols-outlined text-lg">arrow_back</span>
+                  <span className="material-symbols-outlined text-lg">
+                    arrow_back
+                  </span>
                 </Link>
               ) : (
                 <div className="px-10 py-4 rounded-full font-bold tracking-widest text-xs uppercase bg-white/5 text-white/40 border border-white/5 flex items-center gap-3">
                   PROCESSING...
-                  <span className="material-symbols-outlined text-lg animate-spin">refresh</span>
+                  <span className="material-symbols-outlined text-lg animate-spin">
+                    refresh
+                  </span>
                 </div>
               )}
             </div>
@@ -148,7 +174,9 @@ const VerifyEmail = () => {
                 <span className="font-mono text-[10px] text-[#353535] uppercase tracking-widest">
                   Protocol
                 </span>
-                <span className="font-mono text-[12px] text-white mt-1">SSL/AES-256</span>
+                <span className="font-mono text-[12px] text-white mt-1">
+                  SSL/AES-256
+                </span>
               </div>
               <div className="w-px h-8 bg-white/5"></div>
               <div className="flex flex-col items-center">
@@ -157,10 +185,16 @@ const VerifyEmail = () => {
                 </span>
                 <span
                   className={`font-mono text-[12px] mt-1 ${
-                    status === "SEQUENCE COMPLETE" ? "text-purple-400" : "text-white"
+                    status === "SEQUENCE COMPLETE"
+                      ? "text-purple-400"
+                      : "text-white"
                   }`}
                 >
-                  {status === "SEQUENCE COMPLETE" ? "ENCRYPTED" : status === "SYSTEM ERROR" ? "FAILED" : "PENDING"}
+                  {status === "SEQUENCE COMPLETE"
+                    ? "ENCRYPTED"
+                    : status === "SYSTEM ERROR"
+                      ? "FAILED"
+                      : "PENDING"}
                 </span>
               </div>
             </div>
@@ -204,14 +238,6 @@ const VerifyEmail = () => {
           </div>
         </div>
       </footer>
-
-      {/* Fixed Terminal Timestamp Decorator */}
-      <div className="fixed bottom-6 right-8 pointer-events-none hidden lg:block">
-        <div className="flex flex-col items-end gap-1 opacity-40">
-          <span className="font-mono text-[9px] text-[#C7C6C6] uppercase">System_Clock</span>
-          <span className="font-mono text-[11px] text-white">12:34:01:004</span>
-        </div>
-      </div>
     </div>
   );
 };
