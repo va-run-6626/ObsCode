@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
   return (
@@ -9,10 +10,14 @@ const HomePage = () => {
         </h1>
         <p className="text-zinc-400">
           Go to{" "}
-          <a href="/admin/problems/new" className="text-blue-400 underline">
+          <Link to="/admin/problems/new" className="text-blue-400 underline">
             Admin Panel
-          </a>{" "}
-          to add problems.
+          </Link>{" "}
+          to add problems or check the{" "}
+          <Link to="/editor" className="text-blue-400 underline">
+            Editor
+          </Link>
+          .
         </p>
       </div>
     </div>

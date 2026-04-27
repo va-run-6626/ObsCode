@@ -8,6 +8,7 @@ import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
 import OAuthCallback from "./Pages/OAuthCallback";
 import VerifyEmail from "./Pages/VerifyEmail";
+import EditorPage from "./Pages/EditorPage";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         />
         <Route path="/oauth-callback" element={<OAuthCallback />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/editor" element={<EditorPage />} />
       </Routes>
     </BrowserRouter>
   );
