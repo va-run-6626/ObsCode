@@ -9,7 +9,7 @@ import OAuthCallback from "./Pages/OAuthCallback";
 import VerifyEmail from "./Pages/VerifyEmail";
 import EditorPage from "./Pages/EditorPage";
 import { AuthProvider } from "./context/AuthContext";
-import AdminLayout from "./layouts/AdminLayout";
+import AdminLayout from "./Layouts/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminUsers from "./Pages/AdminUsers";
 import AdminSettings from "./Pages/AdminSettings";
@@ -28,7 +28,11 @@ function App() {
 
           {/* Protected routes for authenticated users */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/editor" element={<EditorPage />} />
+            <Route path="/editor" element={<EditorPage key="editor-home" />} />
+            <Route
+              path="/editor/:slug"
+              element={<EditorPage key="editor-problem" />}
+            />
             {/* Add other user routes here, e.g., /problems, /submissions */}
           </Route>
 
@@ -41,11 +45,11 @@ function App() {
               <Route path="settings" element={<AdminSettings />} />
               <Route
                 path="problems/new"
-                element={<ProblemUploadInterface mode="create" />}
+                element={<ProblemUploadInterface key="create" mode="create" />}
               />
               <Route
                 path="problems/edit/:slug"
-                element={<ProblemUploadInterface mode="edit" />}
+                element={<ProblemUploadInterface key="edit" mode="edit" />}
               />
             </Route>
           </Route>

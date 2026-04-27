@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import Papa from "papaparse";
 import ReactMarkdown from "react-markdown";
-import AdminLayout from "../Layouts/AdminLayout";
 import api from "../services/api";
 
 const LANGUAGES = ["C++", "Java", "JavaScript", "Python"];
@@ -37,36 +36,37 @@ const TAG_OPTIONS = [
   "DESIGN",
 ];
 
+const createEmptyProblemForm = () => ({
+  title: "",
+  slug: "",
+  difficulty: "Hard",
+  tags: [],
+  description: "",
+  constraints: "",
+  testCases: [],
+  starterCode: {
+    "C++": "",
+    Java: "",
+    JavaScript: "",
+    Python: "",
+  },
+  driverTemplates: {
+    "C++": "",
+    Java: "",
+    JavaScript: "",
+    Python: "",
+  },
+  solution: "",
+  timeLimitMs: 1000,
+  memoryLimitMb: 256,
+  live: false,
+});
+
 const ProblemUploadInterface = ({ mode = "create" }) => {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    title: "",
-    slug: "",
-    difficulty: "Hard",
-    tags: [],
-    description: "",
-    constraints: "",
-    testCases: [],
-    starterCode: {
-      "C++": "",
-      Java: "",
-      JavaScript: "",
-      Python: "",
-    },
-    driverTemplates: {
-      // <-- NEW: driver templates per language
-      "C++": "",
-      Java: "",
-      JavaScript: "",
-      Python: "",
-    },
-    solution: "",
-    timeLimitMs: 1000,
-    memoryLimitMb: 256,
-    live: false,
-  });
+  const [form, setForm] = useState(createEmptyProblemForm);
 
   const [problemId, setProblemId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -79,92 +79,65 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
 
   // Fetch existing problem data when in edit mode
   useEffect(() => {
-    if (mode === "edit" && slug) {
-      const fetchProblem = async () => {
-        setLoading(true);
-        try {
-          const response = await api.get(`/problems/${slug}`);
-          const data = response.data;
+    if (mode !== "edit" || !slug) return;
 
-          setProblemId(data.id);
+    const fetchProblem = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/problems/${slug}`);
+        const data = response.data;
 
-          // Transform test cases: backend 'public' -> frontend 'isPublic'
-          const transformedTestCases = (data.allTestCases || []).map((tc) => ({
-            input: tc.input,
-            expectedOutput: tc.expectedOutput,
-            isPublic: tc.visible,
-          }));
+        setProblemId(data.id);
 
-          // Transform starterCode: lowercase keys -> capitalized keys
-          const transformedStarterCode = {
-            "C++": data.starterCode?.cpp || "",
-            Java: data.starterCode?.java || "",
-            JavaScript: data.starterCode?.javascript || "",
-            Python: data.starterCode?.python || "",
-          };
+        // Transform test cases: backend 'public' -> frontend 'isPublic'
+        const transformedTestCases = (data.allTestCases || []).map((tc) => ({
+          input: tc.input,
+          expectedOutput: tc.expectedOutput,
+          isPublic: tc.visible,
+        }));
 
-          // Transform driverTemplates: lowercase keys -> capitalized keys
-          const transformedDriverTemplates = {
-            "C++": data.driverTemplates?.cpp || "",
-            Java: data.driverTemplates?.java || "",
-            JavaScript: data.driverTemplates?.javascript || "",
-            Python: data.driverTemplates?.python || "",
-          };
+        // Transform starterCode: lowercase keys -> capitalized keys
+        const transformedStarterCode = {
+          "C++": data.starterCode?.cpp || "",
+          Java: data.starterCode?.java || "",
+          JavaScript: data.starterCode?.javascript || "",
+          Python: data.starterCode?.python || "",
+        };
 
-          setForm({
-            title: data.title || "",
-            slug: data.slug || "",
-            difficulty: data.difficulty || "Hard",
-            tags: data.tags || [],
-            description: data.description || "",
-            constraints: data.constraints || "",
-            testCases: transformedTestCases,
-            starterCode: transformedStarterCode,
-            driverTemplates: transformedDriverTemplates,
-            solution: data.solution || "",
-            timeLimitMs: data.timeLimitMs || 1000,
-            memoryLimitMb: data.memoryLimitMb || 256,
-            live: data.live ?? false,
-          });
-        } catch (err) {
-          setMessage({
-            type: "error",
-            text: err.response?.data?.message || err.message,
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchProblem();
-    } else {
-      // reset form for create mode
-      setProblemId(null);
-      setForm({
-        title: "",
-        slug: "",
-        difficulty: "Hard",
-        tags: [],
-        description: "",
-        constraints: "",
-        testCases: [],
-        starterCode: {
-          "C++": "",
-          Java: "",
-          JavaScript: "",
-          Python: "",
-        },
-        driverTemplates: {
-          "C++": "",
-          Java: "",
-          JavaScript: "",
-          Python: "",
-        },
-        solution: "",
-        timeLimitMs: 1000,
-        memoryLimitMb: 256,
-        live: false,
-      });
-    }
+        // Transform driverTemplates: lowercase keys -> capitalized keys
+        const transformedDriverTemplates = {
+          "C++": data.driverTemplates?.cpp || "",
+          Java: data.driverTemplates?.java || "",
+          JavaScript: data.driverTemplates?.javascript || "",
+          Python: data.driverTemplates?.python || "",
+        };
+
+        setForm({
+          title: data.title || "",
+          slug: data.slug || "",
+          difficulty: data.difficulty || "Hard",
+          tags: data.tags || [],
+          description: data.description || "",
+          constraints: data.constraints || "",
+          testCases: transformedTestCases,
+          starterCode: transformedStarterCode,
+          driverTemplates: transformedDriverTemplates,
+          solution: data.solution || "",
+          timeLimitMs: data.timeLimitMs || 1000,
+          memoryLimitMb: data.memoryLimitMb || 256,
+          live: data.live ?? false,
+        });
+      } catch (err) {
+        setMessage({
+          type: "error",
+          text: err.response?.data?.message || err.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProblem();
   }, [mode, slug]);
 
   // Auto-save toast
@@ -359,20 +332,17 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-white">Loading problem data...</p>
-          </div>
+      <div className="flex items-center justify-center h-[calc(100vh-144px)]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white">Loading problem data...</p>
         </div>
-      </AdminLayout>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
-      <div className="text-on-background font-body relative">
+    <div className="text-on-background font-body relative">
         {/* Toast notification */}
         {toastVisible && (
           <div className="fixed top-24 right-8 z-[100] flex items-center gap-4 bg-surface-container-highest p-4 pr-8 rounded-3xl shadow-2xl border border-white/5 animate-in fade-in slide-in-from-top-4">
@@ -998,8 +968,7 @@ const ProblemUploadInterface = ({ mode = "create" }) => {
             </div>
           </section>
         </div>
-      </div>
-    </AdminLayout>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import AdminLayout from "../Layouts/AdminLayout";
 import api from "../services/api"; // ← axios instance with baseURL & auth interceptor
 
 const AdminDashboard = () => {
@@ -44,15 +43,12 @@ const AdminDashboard = () => {
     );
   }, [problems, searchTerm]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredProblems.length]);
-
   const totalPages = Math.ceil(filteredProblems.length / itemsPerPage);
+  const safeCurrentPage = Math.min(currentPage, totalPages || 1);
   const paginatedProblems = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
+    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
     return filteredProblems.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredProblems, currentPage]);
+  }, [filteredProblems, safeCurrentPage]);
 
   const totalProblems = problems.length;
   const draftCount = problems.filter((p) => !p.live).length;
@@ -65,6 +61,10 @@ const AdminDashboard = () => {
 
   const handleEdit = (problemSlug) => {
     navigate(`/admin/problems/edit/${problemSlug}`);
+  };
+
+  const handlePlay = (problemSlug) => {
+    navigate(`/editor/${problemSlug}`);
   };
 
   const handleDelete = async (problemId) => {
@@ -81,16 +81,16 @@ const AdminDashboard = () => {
   };
 
   const goToPreviousPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (safeCurrentPage > 1) setCurrentPage(safeCurrentPage - 1);
   };
 
   const goToNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (safeCurrentPage < totalPages) setCurrentPage(safeCurrentPage + 1);
   };
 
-  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(
-    currentPage * itemsPerPage,
+    safeCurrentPage * itemsPerPage,
     filteredProblems.length,
   );
 
@@ -118,7 +118,10 @@ const AdminDashboard = () => {
               placeholder="Filter by slug or title..."
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
           <button
@@ -319,6 +322,15 @@ const AdminDashboard = () => {
                     <td className="px-8 py-6 text-right">
                       <div className="flex justify-end gap-3">
                         <button
+                          onClick={() => handlePlay(problem.slug)}
+                          className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-secondary hover:bg-green-500/20 hover:text-green-400 transition-all"
+                          title="Open in editor"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            play_arrow
+                          </span>
+                        </button>
+                        <button
                           onClick={() => handleEdit(problem.slug)}
                           className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-secondary hover:bg-primary/20 hover:text-primary transition-all"
                         >
@@ -353,7 +365,7 @@ const AdminDashboard = () => {
             <button
               className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary hover:text-black transition-all disabled:opacity-30 disabled:hover:bg-surface-container-low disabled:hover:text-white"
               onClick={goToPreviousPage}
-              disabled={currentPage === 1 || filteredProblems.length === 0}
+              disabled={safeCurrentPage === 1 || filteredProblems.length === 0}
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
@@ -361,7 +373,7 @@ const AdminDashboard = () => {
               className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-primary hover:text-black transition-all disabled:opacity-30 disabled:hover:bg-surface-container-low disabled:hover:text-white"
               onClick={goToNextPage}
               disabled={
-                currentPage === totalPages || filteredProblems.length === 0
+                safeCurrentPage === totalPages || filteredProblems.length === 0
               }
             >
               <span className="material-symbols-outlined">chevron_right</span>

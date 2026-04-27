@@ -1,12 +1,48 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Link, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import ReactMarkdown from "react-markdown";
 import Sidebar from "../components/Sidebar";
+import ConsoleOutput from "../components/ConsoleOutput";
+import api from "../services/api";
+
+const LANGUAGE_OPTIONS = [
+  { label: "Python 3.10", key: "python", monaco: "python" },
+  { label: "Java 17", key: "java", monaco: "java" },
+  { label: "JavaScript ES6", key: "javascript", monaco: "javascript" },
+  { label: "C++ 17", key: "cpp", monaco: "cpp" },
+];
+
+const DEFAULT_CODE = `class Solution:
+    def solve(self):
+        pass`;
+
+const IN_PROGRESS_SUBMISSION_STATUSES = new Set([
+  "PENDING",
+  "PROCESSING",
+  "QUEUED",
+  "RUNNING",
+]);
 
 const EditorPage = () => {
+  const { slug } = useParams();
   const [activeTab, setActiveTab] = useState("description");
   const [leftPanelWidth, setLeftPanelWidth] = useState(50);
   const [isResizing, setIsResizing] = useState(false);
+  const [problem, setProblem] = useState(null);
+  const [loadingProblem, setLoadingProblem] = useState(Boolean(slug));
+  const [problemError, setProblemError] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState("python");
+  const [runResult, setRunResult] = useState(null);
+  const [executionError, setExecutionError] = useState(null);
+  const [executionMode, setExecutionMode] = useState(null);
+  const [isConsoleVisible, setIsConsoleVisible] = useState(false);
+  const [codeByLanguage, setCodeByLanguage] = useState({
+    python: DEFAULT_CODE,
+    java: "",
+    javascript: "",
+    cpp: "",
+  });
   const containerRef = useRef(null);
 
   const handleMouseDown = (e) => {
@@ -33,15 +69,107 @@ const EditorPage = () => {
     };
   }, [isResizing]);
 
-  const defaultCode = `class Solution:
-    def twoSum(self, nums: List[int], target: int) -> List[int]:
-        prevMap = {}
-        for i, n in enumerate(nums):
-            diff = target - n
-            if diff in prevMap:
-                return [prevMap[diff], i]
-            prevMap[n] = i
-        return []`;
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchProblem = async () => {
+      setLoadingProblem(true);
+      setProblemError(null);
+      try {
+        const response = await api.get(`/problems/${slug}`);
+        const data = response.data;
+        setProblem(data);
+        setCodeByLanguage({
+          python: data.starterCode?.python || DEFAULT_CODE,
+          java: data.starterCode?.java || "",
+          javascript: data.starterCode?.javascript || "",
+          cpp: data.starterCode?.cpp || "",
+        });
+      } catch (err) {
+        setProblemError(err.response?.data?.message || err.message);
+      } finally {
+        setLoadingProblem(false);
+      }
+    };
+
+    fetchProblem();
+  }, [slug]);
+
+  const selectedLanguageOption = useMemo(
+    () =>
+      LANGUAGE_OPTIONS.find((language) => language.key === selectedLanguage) ||
+      LANGUAGE_OPTIONS[0],
+    [selectedLanguage],
+  );
+
+  const visibleTestCases = useMemo(() => {
+    const cases = problem?.allTestCases || problem?.testCases || [];
+    return cases.filter((testCase) => testCase.visible ?? testCase.isPublic);
+  }, [problem]);
+
+  const editorCode = codeByLanguage[selectedLanguage] || "";
+  const difficulty = problem?.difficulty || "Hard";
+  const isExecuting = Boolean(executionMode);
+
+  const sleep = (ms) =>
+    new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+
+  const fetchSubmissionUntilComplete = async (submissionId) => {
+    const maxAttempts = 60;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const response = await api.get(`/submissions/${submissionId}`);
+      const submission = response.data;
+      const status = submission.status?.toUpperCase();
+
+      if (
+        submission.finalVerdict ||
+        (status && !IN_PROGRESS_SUBMISSION_STATUSES.has(status))
+      ) {
+        return submission;
+      }
+
+      await sleep(1000);
+    }
+
+    throw new Error("Submission is still processing. Please try again shortly.");
+  };
+
+  const handleExecution = async (type) => {
+    if (!problem?.id) {
+      setExecutionError("Problem data is not loaded yet.");
+      return;
+    }
+
+    setExecutionMode(type);
+    setExecutionError(null);
+    setRunResult(null);
+    setIsConsoleVisible(true);
+
+    try {
+      const response = await api.post("/submissions/run", {
+        problemId: problem.id,
+        language: selectedLanguage,
+        userCode: editorCode,
+        type,
+      });
+      const submissionId = response.data?.submissionId || response.data?.id;
+
+      if (!submissionId) {
+        throw new Error("Run API did not return a submissionId.");
+      }
+
+      const completedSubmission =
+        await fetchSubmissionUntilComplete(submissionId);
+      setRunResult(completedSubmission);
+    } catch (err) {
+      setExecutionError(err.response?.data?.message || err.message);
+    } finally {
+      setExecutionMode(null);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-black text-on-background font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
@@ -54,7 +182,7 @@ const EditorPage = () => {
         <header className="bg-[#131313]/70 backdrop-blur-xl flex justify-between items-center px-12 py-4 border-b border-outline-variant/10">
           <div className="flex items-center gap-8">
             <h1 className="text-xl font-bold tracking-tighter text-white">
-              Obs Play
+              {problem?.title || "Obs Play"}
             </h1>
             <nav className="hidden md:flex items-center gap-6 font-medium">
               <Link
@@ -121,52 +249,88 @@ const EditorPage = () => {
                   <div className="prose prose-invert prose-p:text-on-surface-variant prose-headings:text-white prose-code:text-white prose-code:bg-surface-container-low prose-code:px-1 prose-code:rounded">
                     <div className="flex items-center gap-2 mb-4">
                       <span className="bg-surface-container-high text-xs font-mono px-3 py-1 rounded-full text-secondary">
-                        HARD
+                        {difficulty.toUpperCase()}
                       </span>
                       <span className="text-xs font-mono text-outline">
-                        Problem #402
+                        {problem?.id ? `Problem #${problem.id}` : slug || "Practice"}
                       </span>
                     </div>
-                    <h1>0x01 Array Decryption</h1>
-                    <p>
-                      Given an array of integers <code>nums</code> and a target
-                      value <code>sum</code>, return the indices of the two
-                      numbers such that they add up to the specific target.
-                    </p>
-                    <p>
-                      You may assume that each input would have exactly one
-                      solution, and you may not use the same element twice. You
-                      can return the answer in any order.
-                    </p>
-                    <div className="bg-surface-container-low p-8 rounded-3xl my-8 not-prose">
-                      <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-xs">
-                          info
-                        </span>{" "}
-                        Example Case
-                      </h3>
-                      <div className="space-y-4 font-mono text-sm">
-                        <div>
-                          <span className="text-outline">Input: </span>
-                          <code className="text-white">
-                            nums = [2,7,11,15], target = 9
-                          </code>
-                        </div>
-                        <div>
-                          <span className="text-outline">Output: </span>
-                          <code className="text-white">[0,1]</code>
-                        </div>
-                        <div className="text-secondary italic text-xs">
-                          Explanation: Because nums[0] + nums[1] == 9, we return
-                          [0, 1].
-                        </div>
+                    {loadingProblem ? (
+                      <div className="flex items-center gap-3 text-outline">
+                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                        <span>Loading problem...</span>
                       </div>
-                    </div>
-                    <p>
-                      The solution must be optimized for <code>O(n)</code> time
-                      complexity. Any quadratic approach will be rejected by the
-                      editorial judge.
-                    </p>
+                    ) : problemError ? (
+                      <div className="bg-red-950/40 text-red-200 border border-red-500/20 p-5 rounded-2xl not-prose">
+                        Failed to load problem: {problemError}
+                      </div>
+                    ) : (
+                      <>
+                        <h1>{problem?.title || "Select a problem"}</h1>
+                        <ReactMarkdown>
+                          {problem?.description ||
+                            "Open a problem from the admin dashboard to load its description here."}
+                        </ReactMarkdown>
+
+                        {visibleTestCases.length > 0 && (
+                          <div className="bg-surface-container-low p-8 rounded-3xl my-8 not-prose">
+                            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-xs">
+                                info
+                              </span>
+                              Sample Cases
+                            </h3>
+                            <div className="space-y-4 font-mono text-sm">
+                              {visibleTestCases.map((testCase, index) => (
+                                <div
+                                  key={`${testCase.input}-${index}`}
+                                  className="space-y-2 border-b border-white/5 last:border-b-0 pb-4 last:pb-0"
+                                >
+                                  <div>
+                                    <span className="text-outline">
+                                      Input:{" "}
+                                    </span>
+                                    <code className="text-white whitespace-pre-wrap">
+                                      {testCase.input}
+                                    </code>
+                                  </div>
+                                  <div>
+                                    <span className="text-outline">
+                                      Output:{" "}
+                                    </span>
+                                    <code className="text-white whitespace-pre-wrap">
+                                      {testCase.expectedOutput}
+                                    </code>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {problem?.constraints && (
+                          <>
+                            <h2>Constraints</h2>
+                            <pre className="whitespace-pre-wrap">
+                              {problem.constraints}
+                            </pre>
+                          </>
+                        )}
+
+                        {problem?.tags?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-8 not-prose">
+                            {problem.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="bg-surface-container-high text-xs font-mono px-3 py-1 rounded-full text-secondary"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
                 {activeTab === "editorial" && (
@@ -176,60 +340,33 @@ const EditorPage = () => {
                         history_edu
                       </span>
                       <span className="text-xs font-mono text-outline">
-                        Author: Senior Editorial Judge
+                        Editorial
                       </span>
                     </div>
                     <h1>Official Editorial</h1>
-                    <p>
-                      The Two Sum problem is a classic application of hash maps
-                      to trade memory for time complexity. While a brute force
-                      solution checks every pair, we can do much better.
-                    </p>
-                    <h2>Approach: One-pass Hash Map</h2>
-                    <p>
-                      While we iterate and inserting elements into the table, we
-                      also look back to check if current element's complement
-                      already exists in the table. If it exists, we have found a
-                      solution and return the indices immediately.
-                    </p>
-                    <div className="bg-surface-container-low p-6 rounded-3xl my-6 font-mono text-xs not-prose">
-                      <div className="flex flex-col gap-1">
-                        <p>
-                          <span className="text-blue-400">def</span>{" "}
-                          <span className="text-green-300">solve</span>(nums,
-                          target):
-                        </p>
-                        <p className="pl-4">hashmap = {}</p>
-                        <p className="pl-4">
-                          <span className="text-blue-400">for</span> i, n{" "}
-                          <span className="text-blue-400">in</span>{" "}
-                          enumerate(nums):
-                        </p>
-                        <p className="pl-8">complement = target - n</p>
-                        <p className="pl-8">
-                          <span className="text-blue-400">if</span> complement{" "}
-                          <span className="text-blue-400">in</span> hashmap:
-                        </p>
-                        <p className="pl-12">
-                          <span className="text-blue-400">return</span>{" "}
-                          [hashmap[complement], i]
-                        </p>
-                        <p className="pl-8">hashmap[n] = i</p>
+                    {problem?.solution ? (
+                      <ReactMarkdown>{problem.solution}</ReactMarkdown>
+                    ) : (
+                      <p>No editorial has been published for this problem yet.</p>
+                    )}
+                    {problem?.timeLimitMs && (
+                      <div className="bg-surface-container-low p-6 rounded-3xl my-6 font-mono text-xs not-prose">
+                        <div className="flex flex-col gap-2">
+                          <p>
+                            <span className="text-outline">Time Limit:</span>{" "}
+                            <span className="text-white">
+                              {problem.timeLimitMs}ms
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-outline">Memory Limit:</span>{" "}
+                            <span className="text-white">
+                              {problem.memoryLimitMb} MB
+                            </span>
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <h2>Complexity Analysis</h2>
-                    <ul className="list-disc pl-5 space-y-2 text-on-surface-variant text-sm">
-                      <li>
-                        <strong>Time Complexity:</strong> O(n). We traverse the
-                        list containing n elements only once. Each lookup in the
-                        table costs only O(1) time.
-                      </li>
-                      <li>
-                        <strong>Space Complexity:</strong> O(n). The extra space
-                        required depends on the number of items stored in the
-                        hash map, which stores at most n elements.
-                      </li>
-                    </ul>
+                    )}
                   </div>
                 )}
                 {activeTab === "submissions" && (
@@ -316,16 +453,20 @@ const EditorPage = () => {
                   <span className="material-symbols-outlined text-sm text-secondary">
                     language
                   </span>
-                  <select className="bg-transparent text-sm font-medium text-white border-none focus:ring-0 p-0 pr-8 outline-none">
-                    <option className="bg-surface-container-high">
-                      Java 17
-                    </option>
-                    <option selected className="bg-surface-container-high">
-                      Python 3.10
-                    </option>
-                    <option className="bg-surface-container-high">
-                      JavaScript ES6
-                    </option>
+                  <select
+                    className="bg-transparent text-sm font-medium text-white border-none focus:ring-0 p-0 pr-8 outline-none"
+                    value={selectedLanguage}
+                    onChange={(event) => setSelectedLanguage(event.target.value)}
+                  >
+                    {LANGUAGE_OPTIONS.map((language) => (
+                      <option
+                        key={language.key}
+                        value={language.key}
+                        className="bg-surface-container-high"
+                      >
+                        {language.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <button className="p-2 text-outline hover:text-white transition-colors">
@@ -347,9 +488,14 @@ const EditorPage = () => {
             <div className="flex-1 rounded-2xl overflow-hidden relative border border-outline-variant/10 bg-[#0e0e0e]">
               <Editor
                 height="100%"
-                defaultLanguage="python"
-                defaultValue={defaultCode}
-                theme="vs-dark"
+                language={selectedLanguageOption.monaco}
+                value={editorCode}
+                onChange={(value) =>
+                  setCodeByLanguage((prev) => ({
+                    ...prev,
+                    [selectedLanguage]: value || "",
+                  }))
+                }
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,
@@ -376,11 +522,19 @@ const EditorPage = () => {
 
             <div className="mt-6 flex items-center justify-between">
               <div className="flex gap-4">
-                <button className="bg-surface-container-high text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-surface-container-highest transition-colors active:scale-95">
-                  Run Test Cases
+                <button
+                  className="bg-surface-container-high text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-surface-container-highest transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isExecuting || !problem?.id}
+                  onClick={() => handleExecution("RUN")}
+                >
+                  {executionMode === "RUN" ? "Running..." : "Run Test Cases"}
                 </button>
-                <button className="bg-primary text-on-primary px-10 py-3 rounded-full font-extrabold text-sm hover:scale-105 transition-transform active:scale-95 shadow-xl">
-                  Submit Solution
+                <button
+                  className="bg-primary text-on-primary px-10 py-3 rounded-full font-extrabold text-sm hover:scale-105 transition-transform active:scale-95 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  disabled={isExecuting || !problem?.id}
+                  onClick={() => handleExecution("SUBMIT")}
+                >
+                  {executionMode === "SUBMIT" ? "Submitting..." : "Submit Solution"}
                 </button>
               </div>
               <div className="flex items-center gap-6 text-outline">
@@ -399,39 +553,15 @@ const EditorPage = () => {
               </div>
             </div>
 
-            <div className="absolute bottom-28 right-12 w-80 bg-surface-container-high/90 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white/5 transform translate-y-0">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_10px_#4ade80]"></div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-white">
-                    Console Output
-                  </span>
-                </div>
-                <button className="text-outline hover:text-white">
-                  <span className="material-symbols-outlined text-sm">
-                    close
-                  </span>
-                </button>
-              </div>
-              <div className="bg-black/30 p-4 rounded-2xl font-mono text-[11px] space-y-2 border border-white/5">
-                <p className="text-green-300">
-                  ✓ Test Case 1: [2,7,11,15], target=9
-                </p>
-                <p className="text-green-300">
-                  ✓ Test Case 2: [3,2,4], target=6
-                </p>
-                <p className="text-outline-variant">
-                  ------------------------------
-                </p>
-                <p className="text-white">
-                  Status:{" "}
-                  <span className="font-bold text-green-300">Accepted</span>
-                </p>
-                <p className="text-outline-variant">
-                  Runtime: Faster than 98.2% of Python3
-                </p>
-              </div>
-            </div>
+            {isConsoleVisible && (
+              <ConsoleOutput
+                publicTestCases={visibleTestCases}
+                result={runResult}
+                loading={isExecuting}
+                error={executionError}
+                onClose={() => setIsConsoleVisible(false)}
+              />
+            )}
           </section>
         </main>
       </div>
