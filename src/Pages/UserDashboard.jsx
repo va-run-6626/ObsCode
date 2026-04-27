@@ -1,17 +1,31 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+
+const MONTH_LABELS = [
+  { label: "Jan", weeks: 4 },
+  { label: "Feb", weeks: 4 },
+  { label: "Mar", weeks: 5 },
+  { label: "Apr", weeks: 4 },
+  { label: "May", weeks: 4 },
+  { label: "Jun", weeks: 4 },
+  { label: "Jul", weeks: 5 },
+  { label: "Aug", weeks: 4 },
+  { label: "Sep", weeks: 4 },
+  { label: "Oct", weeks: 5 },
+  { label: "Nov", weeks: 4 },
+  { label: "Dec", weeks: 5 },
+];
+
+const WEEKDAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
 
 const UserDashboard = () => {
-  const { user } = useAuth();
-
   const intensities = [
-    'bg-neutral-900 border border-white/5',
-    'bg-neutral-800',
-    'bg-neutral-600',
-    'bg-neutral-400',
-    'bg-neutral-200',
-    'bg-white'
+    "bg-neutral-900 border border-white/5",
+    "bg-neutral-800",
+    "bg-neutral-600",
+    "bg-neutral-400",
+    "bg-neutral-200",
+    "bg-white",
   ];
 
   const activeDays = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
@@ -150,7 +164,7 @@ const UserDashboard = () => {
 
       {/* Activity Heatmap */}
       <section className="mb-16">
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 mb-8">
           <div>
             <h2 className="text-2xl font-bold text-white tracking-tight">Submission Activity</h2>
             <div className="flex gap-4 mt-3">
@@ -158,7 +172,7 @@ const UserDashboard = () => {
               <button className="text-secondary font-mono text-xs hover:text-white transition-colors">2023</button>
               <button className="text-secondary font-mono text-xs hover:text-white transition-colors">2022</button>
             </div>
-            <p className="text-secondary text-sm">342 submissions in the last 12 months</p>
+            <p className="text-secondary text-sm mt-2">342 submissions in the last 12 months</p>
           </div>
           <div className="flex gap-2 items-center text-[10px] font-mono text-secondary uppercase tracking-widest">
             <span>Less</span>
@@ -171,20 +185,44 @@ const UserDashboard = () => {
           </div>
         </div>
         <div className="bg-surface-container-low p-8 rounded-3xl overflow-x-auto hide-scrollbar border border-outline-variant/10">
-          <div className="flex flex-col gap-4 min-w-[800px]">
-            <div className="flex justify-between text-[10px] font-mono text-secondary px-2">
-              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-              <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
-            </div>
-            <div className="flex gap-1.5 w-full">
-              {Array.from({ length: 52 }).map((_, w) => (
-                <div key={w} className="grid grid-rows-7 gap-1.5">
-                  {Array.from({ length: 7 }).map((_, d) => {
-                    const intensity = intensities[Math.floor(Math.random() * intensities.length)];
-                    return <div key={d} className={`w-2.5 h-2.5 rounded-full ${intensity}`}></div>;
-                  })}
-                </div>
-              ))}
+          <div className="min-w-[860px]">
+            <div className="flex items-start gap-6">
+              <div className="grid grid-rows-7 gap-1.5 pt-6 text-[10px] font-mono text-secondary leading-[10px]">
+                {WEEKDAY_LABELS.map((label, index) => (
+                  <span key={`${label}-${index}`} className="h-2.5">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-6">
+                {MONTH_LABELS.map((month, monthIndex) => (
+                  <div key={month.label} className="space-y-3">
+                    <div className="h-3 text-[10px] font-mono leading-none text-secondary">
+                      {month.label}
+                    </div>
+                    <div className="grid grid-flow-col grid-rows-7 gap-1.5">
+                      {Array.from({ length: month.weeks * 7 }).map(
+                        (_, index) => {
+                          const week = Math.floor(index / 7);
+                          const day = index % 7;
+                          const intensity =
+                            intensities[
+                              (monthIndex * 2 + week * 3 + day * 2) %
+                                intensities.length
+                            ];
+
+                          return (
+                            <div
+                              key={index}
+                              className={`h-2.5 w-2.5 rounded-full ${intensity}`}
+                            />
+                          );
+                        },
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

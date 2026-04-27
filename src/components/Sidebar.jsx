@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import BrandLogo from "./BrandLogo";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -30,7 +31,7 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   return (
@@ -45,9 +46,7 @@ const Sidebar = () => {
               terminal
             </span>
           </div>
-          <span className="ml-4 text-white font-black tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            Obsidian
-          </span>
+          <BrandLogo className="ml-4 text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" />
         </Link>
       </div>
 

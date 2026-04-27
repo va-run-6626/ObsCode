@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import BrandLogo from "../components/BrandLogo";
 
 const LandingPage = () => {
   return (
@@ -8,9 +9,7 @@ const LandingPage = () => {
       <nav className="fixed top-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/5 shadow-[0px_20px_40px_rgba(0,0,0,0.4)]">
         <div className="flex justify-between items-center px-6 md:px-12 py-4 w-full max-w-screen-2xl mx-auto">
           <Link to="/">
-            <div className="font-mono font-bold text-2xl tracking-tighter text-primary cursor-pointer">
-              OBSCODE<span className="text-accent-purple">.</span>
-            </div>
+            <BrandLogo className="text-2xl cursor-pointer" />
           </Link>
           <div className="hidden md:flex items-center space-x-8">
             <a
@@ -249,9 +248,9 @@ const LandingPage = () => {
       <footer className="bg-[#0E0E0E] w-full py-24 px-6 md:px-12 border-t border-white/5">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-screen-2xl mx-auto">
           <div className="flex flex-col gap-2">
-            <div className="text-lg font-black text-white">Obsidian</div>
+            <BrandLogo className="text-lg text-white" />
             <p className="font-mono text-xs uppercase tracking-widest text-[#C7C6C6]">
-              © 2024 Obsidian Editorial. Built for the silent curator.
+              © 2024 ObsCode Editorial. Built for the silent curator.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-8">

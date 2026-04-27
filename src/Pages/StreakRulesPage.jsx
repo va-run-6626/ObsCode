@@ -10,7 +10,7 @@ const StreakRulesPage = () => {
           <p className="font-mono text-[10px] tracking-[0.3em] text-secondary mb-4 uppercase">Protocol V.2.0 / Rules</p>
           <h1 className="text-6xl font-black tracking-tighter text-white mb-6">DAILY STREAK<br />ARCHITECTURE.</h1>
           <p className="text-on-surface max-w-md opacity-80 leading-relaxed">
-            The Obsidian Editorial ecosystem rewards persistence. Understand the mechanics of the streak to dominate the global leaderboard.
+            The ObsCode Editorial ecosystem rewards persistence. Understand the mechanics of the streak to dominate the global leaderboard.
           </p>
         </div>
         <Link to="/dashboard" className="bg-primary text-on-primary px-10 py-4 rounded-xl font-bold tracking-tight hover:bg-opacity-90 transition-all flex items-center gap-3">

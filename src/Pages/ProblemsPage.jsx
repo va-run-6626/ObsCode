@@ -67,7 +67,7 @@ const ProblemsPage = () => {
           <div>
             <h2 className="text-4xl font-black tracking-tight text-white mb-2">Algorithm Challenges</h2>
             <p className="text-secondary max-w-xl">
-              Curated collection of engineering puzzles. Solve to enhance your structural thinking and mastery of the Obsidian engine.
+              Curated collection of engineering puzzles. Solve to enhance your structural thinking and mastery of the ObsCode engine.
             </p>
           </div>
           <div className="flex gap-3">

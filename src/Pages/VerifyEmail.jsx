@@ -1,39 +1,38 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../services/api";
+import BrandLogo from "../components/BrandLogo";
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
   const [status, setStatus] = useState("INITIALIZING"); // INITIALIZING, SEQUENCE COMPLETE, SYSTEM ERROR
   const [message, setMessage] = useState("");
   const hasVerified = useRef(false);
 
   useEffect(() => {
+    if (!token) return;
     if (hasVerified.current) return;
     hasVerified.current = true;
 
-    const token = searchParams.get("token");
-    if (token) {
-      api
-        .get(`/auth/verify?token=${token}`)
-        .then(() => {
-          setStatus("SEQUENCE COMPLETE");
-          setMessage(
-            "Your identity has been verified in the architectural lattice.",
-          );
-        })
-        .catch((err) => {
-          setStatus("SYSTEM ERROR");
-          setMessage(
-            err.response?.data?.message ||
-              "Verification failed or token expired.",
-          );
-        });
-    } else {
-      setStatus("SYSTEM ERROR");
-      setMessage("No verification token provided.");
-    }
-  }, [searchParams]);
+    api
+      .get(`/auth/verify?token=${token}`)
+      .then(() => {
+        setStatus("SEQUENCE COMPLETE");
+        setMessage(
+          "Your identity has been verified in the architectural lattice.",
+        );
+      })
+      .catch((err) => {
+        setStatus("SYSTEM ERROR");
+        setMessage(
+          err.response?.data?.message || "Verification failed or token expired.",
+        );
+      });
+  }, [token]);
+
+  const displayStatus = token ? status : "SYSTEM ERROR";
+  const displayMessage = token ? message : "No verification token provided.";
 
   const backgroundStyle = {
     backgroundColor: "#131313",
@@ -54,9 +53,7 @@ const VerifyEmail = () => {
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 bg-[#131313]/70 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Link to="/">
-            <div className="font-mono font-bold text-2xl tracking-tighter text-primary cursor-pointer">
-              OBSCODE<span className="text-accent-purple">.</span>
-            </div>
+            <BrandLogo className="text-2xl cursor-pointer" />
           </Link>
         </div>
         <div className="flex items-center gap-8">
@@ -95,26 +92,26 @@ const VerifyEmail = () => {
               <div className="relative">
                 <div
                   className={`absolute inset-0 blur-2xl opacity-20 ${
-                    status === "SEQUENCE COMPLETE"
+                    displayStatus === "SEQUENCE COMPLETE"
                       ? "bg-purple-500 animate-pulse"
-                      : status === "SYSTEM ERROR"
+                      : displayStatus === "SYSTEM ERROR"
                         ? "bg-red-500"
                         : "bg-purple-500 animate-pulse"
                   }`}
                 ></div>
                 <span
                   className={`material-symbols-outlined text-8xl md:text-9xl relative ${
-                    status === "SEQUENCE COMPLETE"
+                    displayStatus === "SEQUENCE COMPLETE"
                       ? "text-purple-400"
-                      : status === "SYSTEM ERROR"
+                      : displayStatus === "SYSTEM ERROR"
                         ? "text-red-400"
                         : "text-purple-400"
                   }`}
                   style={{ fontVariationSettings: "'FILL' 0, 'wght' 100" }}
                 >
-                  {status === "SEQUENCE COMPLETE"
+                  {displayStatus === "SEQUENCE COMPLETE"
                     ? "task_alt"
-                    : status === "SYSTEM ERROR"
+                    : displayStatus === "SYSTEM ERROR"
                       ? "error"
                       : "sync"}
                 </span>
@@ -124,18 +121,18 @@ const VerifyEmail = () => {
             {/* Text Content */}
             <div className="space-y-4 mb-12">
               <h1 className="text-3xl md:text-4xl font-black tracking-[0.2em] text-white font-headline uppercase">
-                {status}
+                {displayStatus}
               </h1>
               <p className="text-secondary text-sm md:text-base leading-relaxed max-w-xs mx-auto font-body">
-                {message ||
-                  (status === "INITIALIZING" &&
+                {displayMessage ||
+                  (displayStatus === "INITIALIZING" &&
                     "Scanning architectural lattice for identity match...")}
               </p>
             </div>
 
             {/* Action Button */}
             <div className="flex justify-center">
-              {status === "SEQUENCE COMPLETE" ? (
+              {displayStatus === "SEQUENCE COMPLETE" ? (
                 <Link
                   className="group relative px-10 py-4 rounded-full font-bold tracking-widest text-xs uppercase bg-gradient-to-r from-purple-600 to-indigo-600 text-white transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(147,51,234,0.3)] hover:shadow-[0_0_40px_rgba(147,51,234,0.5)] flex items-center gap-3"
                   to="/login"
@@ -148,7 +145,7 @@ const VerifyEmail = () => {
                     login
                   </span>
                 </Link>
-              ) : status === "SYSTEM ERROR" ? (
+              ) : displayStatus === "SYSTEM ERROR" ? (
                 <Link
                   className="group relative px-10 py-4 rounded-full font-bold tracking-widest text-xs uppercase bg-white/5 text-white border border-white/10 transition-all duration-300 hover:bg-white/10 flex items-center gap-3"
                   to="/signup"
@@ -185,14 +182,14 @@ const VerifyEmail = () => {
                 </span>
                 <span
                   className={`font-mono text-[12px] mt-1 ${
-                    status === "SEQUENCE COMPLETE"
+                    displayStatus === "SEQUENCE COMPLETE"
                       ? "text-purple-400"
                       : "text-white"
                   }`}
                 >
-                  {status === "SEQUENCE COMPLETE"
+                  {displayStatus === "SEQUENCE COMPLETE"
                     ? "ENCRYPTED"
-                    : status === "SYSTEM ERROR"
+                    : displayStatus === "SYSTEM ERROR"
                       ? "FAILED"
                       : "PENDING"}
                 </span>

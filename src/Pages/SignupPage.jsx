@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../services/api";
+import BrandLogo from "../components/BrandLogo";
 
 const SignupPage = () => {
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +24,7 @@ const SignupPage = () => {
         email,
         password,
       });
-      const { message, email: userEmail, name: userName } = response.data;
+      const { message } = response.data;
 
       // Only show success message – do NOT store token or redirect
       setSuccessMsg(
@@ -60,9 +60,7 @@ const SignupPage = () => {
           {/* Logo / Brand Branding */}
           <div className="text-center mb-10">
             <Link to="/">
-              <div className="font-mono font-bold text-2xl tracking-tighter text-primary cursor-pointer">
-                OBSCODE<span className="text-accent-purple">.</span>
-              </div>
+              <BrandLogo className="text-2xl cursor-pointer" />
             </Link>
             <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-secondary mt-2 opacity-60">
               Initiating Architectural Sequence
@@ -208,7 +206,7 @@ const SignupPage = () => {
       <footer className="relative z-10 w-full py-10 px-12 mt-auto">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="font-mono text-[10px] tracking-widest uppercase text-[#474747]">
-            © 2024 THE OBSIDIAN EDITORIAL. ENCRYPTED CONNECTION.
+            © 2024 THE OBSCODE EDITORIAL. ENCRYPTED CONNECTION.
           </div>
           <div className="flex gap-8">
             <a

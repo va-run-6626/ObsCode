@@ -102,7 +102,7 @@ const UserSettingsPage = () => {
                       <div className="h-4 w-4 rounded-full bg-blue-500"></div>
                     </button>
                   </div>
-                  <p className="text-[10px] text-secondary-fixed-dim uppercase tracking-tighter">Current: Obsidian Night</p>
+                  <p className="text-[10px] text-secondary-fixed-dim uppercase tracking-tighter">Current: ObsCode Night</p>
                 </div>
               </div>
               <div className="mt-10 p-6 bg-surface-container-low rounded-xl flex items-center justify-between">

@@ -54,12 +54,6 @@ const AdminDashboard = () => {
   const totalProblems = problems.length;
   const draftCount = problems.filter((p) => !p.live).length;
 
-  const formatAcceptanceRate = (rate) => {
-    if (rate === undefined || rate === null) return "N/A";
-    const percentValue = rate <= 1 ? rate * 100 : rate;
-    return `${Math.round(percentValue)}%`;
-  };
-
   const handleEdit = (problemSlug) => {
     navigate(`/admin/problems/edit/${problemSlug}`);
   };
@@ -80,20 +74,6 @@ const AdminDashboard = () => {
       alert(err.response?.data?.message || "Error deleting problem");
     }
   };
-
-  const goToPreviousPage = () => {
-    if (safeCurrentPage > 1) setCurrentPage(safeCurrentPage - 1);
-  };
-
-  const goToNextPage = () => {
-    if (safeCurrentPage < totalPages) setCurrentPage(safeCurrentPage + 1);
-  };
-
-  const startIndex = (safeCurrentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(
-    safeCurrentPage * itemsPerPage,
-    filteredProblems.length,
-  );
 
   if (loading) {
     return <div className="text-center py-20 text-white">Loading...</div>;
@@ -199,7 +179,7 @@ const AdminDashboard = () => {
               Launch the monthly coding challenge
             </h3>
             <p className="text-on-primary/70 text-sm mt-1">
-              Curate 5 hard problems for the "Obsidian Cup".
+              Curate 5 hard problems for the "ObsCode Cup".
             </p>
           </div>
         </div>
@@ -224,7 +204,7 @@ const AdminDashboard = () => {
           </span>
         </div>
         <div className="text-[10px] font-mono tracking-[0.3em] uppercase text-white">
-          © 2024 Obsidian Editorial
+          © 2024 ObsCode Editorial
         </div>
       </div>
     </div>
